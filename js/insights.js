@@ -856,12 +856,6 @@ function renderTesting(data) {
           : (_uchState.portfolio ? Array.from(uchUCsForPortfolio(_uchState.portfolio)).sort() : uchAllUCs);
         uchBuildPills("uch-panel-uc", _ucs, _uchState.uc, function(u) {
           _uchState.uc = u;
-          // Reset stage slider when switching UC
-          var _sf = document.getElementById("uch-cs-from");
-          var _st = document.getElementById("uch-cs-to");
-          if (_sf) _sf.value = 0;
-          if (_st) _st.value = stageMaxIdx;
-          updateUCHStageSliderDisplay();
           buildUCPills();
           uchUpdateBreadcrumb();
           uchSaveState();
