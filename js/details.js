@@ -1185,7 +1185,9 @@ function renderDetails(data) {
       { label: "Booking Date",               field: "Booking Date",                 isDate: true, isBookingDate: true },
       ...(showDealDetails ? [
         { label: "Deal ID",                  field: "Deal ID",                                       isDealDetailCol: true },
+        { label: "Booking PO Number",        field: "Booking PO Number",                             isDealDetailCol: true },
         { label: "Net Booking",              field: "Booking Amount - Net to Cisco", isCurrency: true, isDealDetailCol: true },
+        { label: "Subscription ID",          field: "Subscription ID",                               isDealDetailCol: true },
       ] : []),
       { label: "Opt-in Date",                field: "Adopt Rebate Start Date",      isDate: true },
       { label: "Expiry Date",                field: "Deal Incentive Expiry Date",   isDate: true, isExpiry: true },
@@ -1267,7 +1269,7 @@ function renderDetails(data) {
       if (c.isBookingDate) {
         var bdSortIcon    = sortField === c.field ? (sortDir === "asc" ? " ▲" : " ▼") : " ⇅";
         var bdToggleIcon  = showDealDetails ? "bi-dash-circle" : "bi-plus-circle";
-        var bdToggleTitle = showDealDetails ? "Hide Deal ID & Net Booking" : "Show Deal ID & Net Booking";
+        var bdToggleTitle = showDealDetails ? "Hide Deal ID, Booking PO Number, Net Booking & Subscription ID" : "Show Deal ID, Booking PO Number, Net Booking & Subscription ID";
         return '<th style="white-space:nowrap;cursor:pointer;user-select:none' + (showDealDetails ? ';border-bottom:4px solid #7ec8e3' : '') + '" data-sortfield="' + c.field + '">' +
           c.label + '<span style="font-size:0.7rem;opacity:0.7">' + bdSortIcon + '</span>' +
           ' <i class="bi ' + bdToggleIcon + '" id="det-dealdetails-toggle" title="' + bdToggleTitle + '" style="font-size:0.8rem;opacity:0.7;cursor:pointer;vertical-align:middle" onclick="event.stopPropagation()"></i></th>';
@@ -1709,7 +1711,9 @@ function renderDetails(data) {
           { label:"Pending Tasks",           field:"Current stage pending tasks" },
           { label:"Booking Date",            field:"Booking Date",                isDate:true },
           { label:"Deal ID",                 field:"Deal ID" },
+          { label:"Booking PO Number",       field:"Booking PO Number" },
           { label:"Net Booking",             field:"Booking Amount - Net to Cisco", isCurrency:true },
+          { label:"Subscription ID",         field:"Subscription ID" },
           { label:"Opt-in Date",             field:"Adopt Rebate Start Date",     isDate:true },
           { label:"Expiry Date",             field:"Deal Incentive Expiry Date",  isDate:true },
           { label:"Missed Incentives",       field:"Missed Incentives",           isCurrency:true },
