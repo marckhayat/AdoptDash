@@ -17,7 +17,7 @@ var APP_FILTER_STATE = { details: null, lifecycle: null, cpiAdopt: null, custome
 var APP_IS_DISTI = false;
 var APP_MULTI_SESSIONS = null; // { sessions: [...], fileMeta: {...} }
 var APP_EXCL_ACTIVE = false;   // when true, excluded deals are removed from overview/pvi/insights calculations
-var APP_VERSION = "v6.8.7.1";
+var APP_VERSION = "v6.8.8 Feedback";
 // Use the browser's preferred language for date formatting (respects user's browser locale setting)
 var APP_LOCALE = navigator.language || undefined;
 // Holds a FileSystemFileHandle from showOpenFilePicker() to be persisted after load
@@ -26,6 +26,76 @@ document.addEventListener("DOMContentLoaded", function () {
   var el = document.getElementById("app-version-label");
   if (el) el.textContent = APP_VERSION;
 });
+
+function openFeedbackForm() {
+  // If no data is loaded, the tab bar is hidden — call it "Data load"
+  var tabBarHidden = document.getElementById("main-tab-bar") && document.getElementById("main-tab-bar").classList.contains("d-none");
+  var activeLink = document.querySelector('#mainTabs .nav-link.active');
+  var tabName = "—";
+  if (tabBarHidden || !APP_DATA) {
+    tabName = "Data load";
+  } else if (activeLink) {
+    var tabMap = { "#tab-overview": "Overview", "#tab-details": "Details", "#tab-pvi": "PVI", "#tab-testing": "Insights" };
+    tabName = tabMap[activeLink.getAttribute("data-bs-target")] || "—";
+    // If on Insights, also capture the active sub-tab
+    if (tabName === "Insights") {
+      var subTabMap = { "tab-btn-cpi": "CPI Adopt", "tab-btn-pareto": "Customer Analysis", "tab-btn-uch": "UC Health", "tab-btn-lifecycle": "Lifecycle" };
+      for (var subId in subTabMap) {
+        var subBtn = document.getElementById(subId);
+        if (subBtn && subBtn.classList.contains("active")) {
+          tabName = "Insights | " + subTabMap[subId];
+          break;
+        }
+      }
+    }
+  }
+
+  var ua = navigator.userAgent;
+  var browser = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Unknown";
+
+  var ts = new Date().toISOString().slice(0, 16).replace("T", " ") + " UTC";
+  var details = "(describe your feedback or request here)\n\n--------------------\n"
+    + "Version: " + APP_VERSION + "\n"
+    + "Tab: " + tabName + "\n"
+    + "Date: " + ts + "\n"
+    + "Browser: " + browser;
+
+  var url = "https://forms.office.com/Pages/ResponsePage.aspx"
+    + "?id=Yq_hWgWVl0CmmsFVPveEDjo43yp-YwhGjcweGiYB-IhUNDkyOTVENzgyR1pDME1DU0xUTVBVVktVOS4u"
+    + "&rb0f013af90ae4b69a920b8de6e132288=" + encodeURIComponent("Adoption Dashboard")
+    + "&r1869926e82d94a499a18bcb522d0e2f1=" + encodeURIComponent("N/A")
+    + "&r64cac3db902a46b997e9023d7d6db140=" + encodeURIComponent(details);
+
+  // Reset modal to loading state
+  var loader  = document.getElementById("feedback-iframe-loader");
+  var blocked = document.getElementById("feedback-iframe-blocked");
+  var iframe  = document.getElementById("feedback-iframe");
+  var fallback = document.getElementById("feedback-fallback-link");
+
+  if (loader)   { loader.style.display = "flex"; }
+  if (blocked)  { blocked.classList.add("d-none"); }
+  if (fallback) { fallback.href = url; }
+
+  // Detect iframe block: if the iframe fails to load (X-Frame-Options / CSP),
+  // the onload still fires but the content is empty — we use a timeout fallback.
+  if (iframe) {
+    iframe.src = "";
+    setTimeout(function () { iframe.src = url; }, 50);
+
+    // If still showing loader after 12 s, assume it was blocked and show fallback
+    setTimeout(function () {
+      var l = document.getElementById("feedback-iframe-loader");
+      if (l && l.style.display !== "none") {
+        l.style.display = "none";
+        var b = document.getElementById("feedback-iframe-blocked");
+        if (b) b.classList.remove("d-none");
+      }
+    }, 12000);
+  }
+
+  var modal = new bootstrap.Modal(document.getElementById("feedbackModal"));
+  modal.show();
+}
 
 // Workspan column names used to auto-detect the header row
 var KNOWN_COLUMNS = [

@@ -422,6 +422,33 @@ tr.row-excluded:hover td  { opacity: 0.65; }
 /* -- CPI Adopt: smaller font for parenthesised text in card headers -- */
 #tab-cpi-adopt .card-header small { font-size: 0.78em; }
 
+/* ── Feedback tab button (fixed right side) ─────────────────── */
+#feedback-tab-btn {
+  position: fixed;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1050;
+  writing-mode: vertical-rl;
+  background: var(--cisco-dark);
+  color: #fff;
+  border: 2px solid var(--cisco-blue);
+  border-right: none;
+  padding: 14px 9px;
+  border-radius: 8px 0 0 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  box-shadow: -3px 2px 10px rgba(0,0,0,.2);
+  transition: background 0.2s, color 0.2s;
+  user-select: none;
+}
+#feedback-tab-btn:hover {
+  background: var(--cisco-blue);
+  color: #fff;
+}
+
 /* -- Data load notification panel (fixed top-right) -- */
 #notif-toast-container {
   position: fixed;
