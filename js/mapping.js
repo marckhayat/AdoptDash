@@ -70,3 +70,35 @@ var UC_GUIDE_MAP = (function () {
   return map;
 }());
 
+// Lookup: use case name → criteria image path (relative to app root)
+var UC_CRITERIA_MAP = {
+  "Campus Network Automation":                              "criteria/Campus Network Automation.jpg",
+  "Campus Network Observability and Insights":             "criteria/Campus Network Observability and Insights.jpg",
+  "Campus Network Programmability and Integrations":       "criteria/Campus Network Programmability and Integration.jpg",
+  "Campus Network Segmentation":                           "criteria/Campus Network Segmentation.jpg",
+  "Campus Network Visibility":                             "criteria/Campus Network Visibility.jpg",
+  "Cloud Monitoring for Catalyst":                         "criteria/Cloud Monitoring for Catalyst.jpg",
+  "Internet and Cloud Visibility":                         "criteria/Internet and Cloud Visibility.jpg",
+  "Location Based Intelligence":                           "criteria/Location Based Intelligence.jpg",
+  "Foundational Networking and Security for Meraki":       "criteria/Foundational Networking and Security for Meraki.jpg",
+  "Programmability and Integrations for Meraki":           "criteria/Programmability and Integrations for Meraki.jpg",
+  "Multicloud Connectivity":                               "criteria/Multicloud Connectivity.jpg",
+  "SD-Routing":                                            "criteria/SD-Routing.jpg",
+  "Secure Automated WAN":                                  "criteria/Secure Automated WAN.jpg",
+  "Network Security Analytics":                            "criteria/Network Security Analytics.jpg",
+  "Secure Application Access With Phishing-Resistant MFA": "criteria/Secure Application Access with Phishing-Resistant MFA.jpg",
+  "DNS Security":                                          "criteria/DNS Security.jpg",
+  "Public Cloud Security Policy and Access":               "criteria/Public Cloud Security Policy and Access.jpg",
+  "Data Center Firewall Operations":                       "criteria/Data Center Firewall Operations.jpg",
+  "Internet Edge Protection":                              "criteria/Internet Edge Protection.jpg",
+  "Network Access Control":                                "criteria/Network Access Control.jpg",
+  "Simplified Operations":                                 "criteria/Simplified Operations.jpg",
+  "Data Center Network Operations":                        "criteria/Data Center Network Operations.jpg",
+  "Distributed Networking":                                "criteria/Distributed Networking.jpg",
+  "Distributed Networking with NDFC (DCNM)":               "criteria/Distributed Networking with NDFC (DCNM).jpg",
+  "Fabric Provisioning and Operations with NDFC (DCNM)":   "criteria/Fabric Provisioning and Operations with NDFC (DCNM).jpg",
+  "Network Provisioning and Operations":                   "criteria/Network Provisioning and Operations.jpg",
+  "Webex Calling and App":                                 "criteria/Webex Calling and App.jpg",
+  "Webex Contact Center":                                  "criteria/Webex Contact Center.jpg"
+};
+

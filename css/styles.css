@@ -467,3 +467,38 @@ tr.row-excluded:hover td  { opacity: 0.65; }
 #notif-toast-container .toast.notif-earned { border-left-color: #198754; }
 #notif-toast-container .toast.notif-expiry { border-left-color: #e6a817; }
 #notif-toast-container .toast.notif-zero   { border-left-color: #adb5bd; opacity: .85; }
+
+/* ── Use Case criteria image popup ──────────────────────────── */
+.uc-criteria-trigger {
+  cursor: help;
+  border-bottom: 1px dashed #00BCF2;
+}
+#uc-criteria-popup {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.18);
+  padding: 6px;
+  max-width: 420px;
+  pointer-events: all;
+  cursor: grab;
+  transform-origin: top left;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+}
+#uc-criteria-popup.dragging {
+  cursor: grabbing;
+  transition: none;
+}
+#uc-criteria-popup img {
+  display: block;
+  max-width: 408px;
+  max-height: 70vh;
+  width: 100%;
+  height: auto;
+  border-radius: 3px;
+  pointer-events: none;
+}

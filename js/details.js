@@ -1435,7 +1435,11 @@ function renderDetails(data) {
             var subLine = [pfAbbr, offer2].filter(Boolean).join(" - ");
             var ucName2 = escHtml(val);
             var ucUrl2 = val ? UC_GUIDE_MAP[String(val).trim()] : null;
+            var ucCritImg = val ? UC_CRITERIA_MAP[String(val).trim()] : null;
             var ucLink = ucUrl2 ? '<a href="' + ucUrl2 + '" target="_blank" rel="noopener">' + ucName2 + '</a>' : ucName2;
+            if (ucCritImg) {
+              ucLink = '<span class="uc-criteria-trigger" data-criteria="' + escHtml(ucCritImg) + '" title="Hover to see exit criteria">' + ucLink + '</span>';
+            }
             cell = ucLink + (subLine ? '<div style="font-size:0.72rem;color:#888;margin-top:1px">' + escHtml(subLine) + '</div>' : '');
           } else if (c.field === "_missedStages") {
             var optInDate = toDate(r["Adopt Rebate Start Date"]);
@@ -1864,3 +1868,111 @@ function renderDetails(data) {
 }
 
 window.renderDetails = renderDetails;
+
+// ── Criteria image popup (event delegation, set up once) ──────────────────
+(function () {
+  var popup = document.createElement("div");
+  popup.id = "uc-criteria-popup";
+  popup.innerHTML = '<img id="uc-criteria-img" src="" alt="Exit Criteria" />' +
+    '<div id="uc-criteria-label"></div>';
+  document.body.appendChild(popup);
+
+  var hideTimer;
+  var dragging = false, dragOffX = 0, dragOffY = 0;
+  var zoomLevel = 2.7;   // default zoom when hovering
+  var isHovered = false;
+
+  function applyZoom() {
+    popup.style.transform = isHovered ? "scale(" + zoomLevel + ")" : "scale(1)";
+  }
+
+  function showPopup(trigger) {
+    clearTimeout(hideTimer);
+    var imgSrc = trigger.getAttribute("data-criteria");
+    if (!imgSrc) return;
+
+    var img = document.getElementById("uc-criteria-img");
+    img.src = imgSrc;
+
+    popup.style.display = "block";
+
+    var rect = trigger.getBoundingClientRect();
+    var popupW = 420;
+    var gap = 8;
+    var left = rect.right + gap;
+    if (left + popupW > window.innerWidth - 8) left = rect.left - popupW - gap;
+    if (left < 8) left = 8;
+    var top = Math.max(8, Math.min(rect.top, window.innerHeight - 50));
+
+    popup.style.left = left + "px";
+    popup.style.top  = top + "px";
+  }
+
+  function hidePopup() {
+    hideTimer = setTimeout(function () {
+      popup.style.display = "none";
+      isHovered = false;
+      popup.style.transform = "scale(1)";
+    }, 80);
+  }
+
+  // Show/hide via trigger
+  document.addEventListener("mouseover", function (e) {
+    var trigger = e.target.closest(".uc-criteria-trigger");
+    if (trigger) { showPopup(trigger); return; }
+    if (e.target.closest("#uc-criteria-popup")) clearTimeout(hideTimer);
+  });
+
+  document.addEventListener("mouseout", function (e) {
+    var trigger = e.target.closest(".uc-criteria-trigger");
+    if (trigger) { hidePopup(); return; }
+    if (e.target.closest("#uc-criteria-popup")) hidePopup();
+  });
+
+  // Zoom in/out on mouse enter/leave the popup
+  popup.addEventListener("mouseenter", function () {
+    clearTimeout(hideTimer);
+    isHovered = true;
+    applyZoom();
+    popup.style.boxShadow = "0 12px 40px rgba(0,0,0,.32)";
+  });
+
+  popup.addEventListener("mouseleave", function () {
+    if (dragging) return;
+    isHovered = false;
+    applyZoom();
+    popup.style.boxShadow = "";
+    hidePopup();
+  });
+
+  // Scroll wheel to adjust zoom level while hovering
+  popup.addEventListener("wheel", function (e) {
+    e.preventDefault();
+    var delta = e.deltaY < 0 ? 0.1 : -0.1;
+    zoomLevel = Math.min(5, Math.max(0.5, zoomLevel + delta));
+    applyZoom();
+  }, { passive: false });
+
+  // ── Drag to move ──
+  popup.addEventListener("mousedown", function (e) {
+    dragging = true;
+    clearTimeout(hideTimer);
+    dragOffX = e.clientX - popup.getBoundingClientRect().left;
+    dragOffY = e.clientY - popup.getBoundingClientRect().top;
+    popup.classList.add("dragging");
+    e.preventDefault();
+  });
+
+  document.addEventListener("mousemove", function (e) {
+    if (!dragging) return;
+    popup.style.left = (e.clientX - dragOffX) + "px";
+    popup.style.top  = (e.clientY - dragOffY) + "px";
+  });
+
+  document.addEventListener("mouseup", function () {
+    if (dragging) {
+      dragging = false;
+      popup.classList.remove("dragging");
+    }
+  });
+}());
