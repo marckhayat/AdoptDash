@@ -1,0 +1,24 @@
+# Ignore everything
+*
+
+# Except web-app contents now at root
+!index.html
+!css/
+!css/**
+!js/
+!js/**
+!proxy/
+!proxy/**
+!*.sh
+!*.bat
+
+# Except criteria images
+!criteria/
+!criteria/**
+
+# Except GitHub Actions
+!.github/
+!.github/**
+
+# Except README
+!README.md
