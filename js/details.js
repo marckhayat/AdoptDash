@@ -44,7 +44,7 @@ function renderDetails(data) {
     optIn: [],
     portfolio: "",
     offer: "",
-    country: "",
+    country: [],
     expires: [],
     ea: [],
     risk: [],
@@ -434,15 +434,19 @@ function renderDetails(data) {
   html += '<div class="filter-group"><label class="group-label">Portfolio' + tip("The technology portfolio that encompasses offers and UCs.") + '</label>' + makeDropdown("filter-portfolio", portfolios) + '</div>';
   html += '<div class="filter-group"><label class="group-label">Offer' + tip("The main solution that was sold to the customer.") + '</label>' + makeDropdown("filter-offer", offerList) + '</div>';
   html += '<div class="filter-group"><label class="group-label">Use Case</label>' + makeDropdown("filter-uc", ucList) + '</div>';
-  if (countryList.length > 0) {
-    html += '<div class="filter-group"><label class="group-label">Country</label>' + makeDropdown("filter-country", countryList) + '</div>';
-  }
 
   // Date filters
   html += '<div class="filter-group"><label class="group-label">Booking Date</label>'          + makeDateSlider("det-bk",  dateBounds.bk)  + '</div>';
   html += '<div class="filter-group"><label class="group-label">Opt-in Date</label>'            + makeDateSlider("det-rs",  dateBounds.rs)  + '</div>';
   html += '<div class="filter-group"><label class="group-label">Incentive Expiry Date</label>'  + makeDateSlider("det-exp", dateBounds.exp) + '</div>';
   html += '<div class="filter-group"><label class="group-label">Earn Date' + tip("Moving this slider will automatically check the Earned filter.") + '</label>'              + makeDateSlider("det-ea",  dateBounds.ea)  + '</div>';
+
+  if (countryList.length > 0) {
+    html += '<div class="filter-group"><label class="group-label">Country' + tip("Hold Ctrl/Cmd to select multiple countries.") + '</label>' +
+      '<select id="filter-country" class="form-select form-select-sm" multiple style="height:110px">' +
+      countryList.map(function(o){ return '<option value="' + escHtml(o) + '">' + escHtml(o) + '</option>'; }).join('') +
+      '</select></div>';
+  }
 
   html += '<div class="filter-group"><label class="group-label"><i class="bi bi-tags me-1"></i>Tags' +
     '<span class="tag-mode-toggle ms-2" id="tag-mode-toggle" title="Switch between matching ALL or ANY selected tags">' +
@@ -664,7 +668,9 @@ function renderDetails(data) {
     document.getElementById("filter-portfolio").value = "";
     document.getElementById("filter-offer").value = "";
     document.getElementById("filter-uc").value = "";
-    if (document.getElementById("filter-country")) document.getElementById("filter-country").value = "";
+    if (document.getElementById("filter-country")) {
+      Array.from(document.getElementById("filter-country").options).forEach(function(o){ o.selected = false; });
+    }
     refreshUcDropdown();
     ["det-bk","det-rs","det-ea","det-exp"].forEach(function (prefix) {
       var fromEl = document.getElementById(prefix + "-from");
@@ -798,7 +804,9 @@ function renderDetails(data) {
     if (ofEl  && st.offer) ofEl.value  = st.offer;
     if (ucEl2 && st.uc)    ucEl2.value = st.uc;
     var ctEl = document.getElementById("filter-country");
-    if (ctEl && st.country) ctEl.value = st.country;
+    if (ctEl && st.country && st.country.length > 0) {
+      Array.from(ctEl.options).forEach(function(o){ o.selected = st.country.indexOf(o.value) !== -1; });
+    }
     refreshUcDropdown();
     // Stage checkboxes
     if (st.stageChecked && st.stageChecked.length) {
@@ -854,7 +862,7 @@ function renderDetails(data) {
         portfolio:     (document.getElementById("filter-portfolio")  || {value:""}).value,
         offer:         (document.getElementById("filter-offer")      || {value:""}).value,
         uc:            (document.getElementById("filter-uc")         || {value:""}).value,
-        country:       (document.getElementById("filter-country")    || {value:""}).value,
+        country:       (function(){ var el = document.getElementById("filter-country"); return el ? Array.from(el.selectedOptions).map(function(o){ return o.value; }) : []; })(),
         stageChecked:  getChecked("filter-stage"),
         optInChecked:  getChecked("filter-optin"),
         offerOptedInY: !!(document.getElementById("filter-offer-optedin-y") || {}).checked,
@@ -944,11 +952,11 @@ function renderDetails(data) {
       if (portfolioVal         && String(r["Deal CPI Portfolio"] || "") !== portfolioVal)                     return false;
       if (offerVal             && String(r["Track"] || "") !== offerVal)                                      return false;
       if (ucVal                && String(r["Sub-Track"] || "") !== ucVal)                                     return false;
-      var countryVal = document.getElementById("filter-country") ? document.getElementById("filter-country").value : "";
-      if (countryVal           && String(r["End Customer Country"] || "") !== countryVal)                     return false;
+      var _ctryEl = document.getElementById("filter-country");
+      var _ctrySelected = _ctryEl ? Array.from(_ctryEl.selectedOptions).map(function(o){ return o.value; }) : [];
+      if (_ctrySelected.length > 0 && _ctrySelected.indexOf(String(r["End Customer Country"] || "")) === -1) return false;
       if (offerOptedIn && !offerNotOptedIn && r["Offer opted-in?"] !== true)  return false;
       if (offerNotOptedIn && !offerOptedIn && r["Offer opted-in?"] === true)   return false;
-      if (pviEligible      && !r["PVI Eligible"])   return false;
       if (pviOnboard       && !r["PVI Onboard"])    return false;
       if (pviAdopt         && !r["PVI Adopt"])      return false;
       if (ucMissed         && !r["UC progressed and missed w/o opt-in"]) return false;
@@ -1684,6 +1692,8 @@ function renderDetails(data) {
         if (ofVal) activeFilters.push("Offer: " + ofVal);
         var ucVal2 = document.getElementById("filter-uc") ? document.getElementById("filter-uc").value : "";
         if (ucVal2) activeFilters.push("Use Case: " + ucVal2);
+        var _ctryExEl = document.getElementById("filter-country");
+        if (_ctryExEl) { Array.from(_ctryExEl.selectedOptions).forEach(function(o){ activeFilters.push("Country: " + o.value); }); }
         getChecked("filter-stage").forEach(function(v) { activeFilters.push("Stage: " + v); });
         getChecked("filter-optin").forEach(function(v) { activeFilters.push("Opt-In: " + v); });
         if (document.getElementById("filter-new-eligible") && document.getElementById("filter-new-eligible").checked) activeFilters.push("New Eligible");
