@@ -44,6 +44,7 @@ function renderDetails(data) {
     optIn: [],
     portfolio: "",
     offer: "",
+    country: "",
     expires: [],
     ea: [],
     risk: [],
@@ -348,9 +349,10 @@ function renderDetails(data) {
     if (bi === -1) return -1;
     return ai - bi;
   });
-  var offerList  = uniqueVals("Track");
-  var ucList     = uniqueVals("Sub-Track");
-  var eaOpts     = uniqueVals("EA Flag");
+  var offerList   = uniqueVals("Track");
+  var ucList      = uniqueVals("Sub-Track");
+  var countryList = uniqueVals("End Customer Country");
+  var eaOpts      = uniqueVals("EA Flag");
 
   // Precompute date bounds for sliders
   function getDateBounds(field) {
@@ -432,6 +434,9 @@ function renderDetails(data) {
   html += '<div class="filter-group"><label class="group-label">Portfolio' + tip("The technology portfolio that encompasses offers and UCs.") + '</label>' + makeDropdown("filter-portfolio", portfolios) + '</div>';
   html += '<div class="filter-group"><label class="group-label">Offer' + tip("The main solution that was sold to the customer.") + '</label>' + makeDropdown("filter-offer", offerList) + '</div>';
   html += '<div class="filter-group"><label class="group-label">Use Case</label>' + makeDropdown("filter-uc", ucList) + '</div>';
+  if (countryList.length > 0) {
+    html += '<div class="filter-group"><label class="group-label">Country</label>' + makeDropdown("filter-country", countryList) + '</div>';
+  }
 
   // Date filters
   html += '<div class="filter-group"><label class="group-label">Booking Date</label>'          + makeDateSlider("det-bk",  dateBounds.bk)  + '</div>';
@@ -572,6 +577,9 @@ function renderDetails(data) {
   });
   document.getElementById("filter-offer").addEventListener("change", function () { refreshUcDropdown(); currentPage = 1; applyFiltersAndRender(); });
   document.getElementById("filter-uc").addEventListener("change", function () { currentPage = 1; applyFiltersAndRender(); });
+  if (document.getElementById("filter-country")) {
+    document.getElementById("filter-country").addEventListener("change", function () { currentPage = 1; applyFiltersAndRender(); });
+  }
   ["det-bk","det-rs","det-ea","det-exp"].forEach(function (prefix) {
     ["from","to"].forEach(function (side) {
       var el2 = document.getElementById(prefix + "-" + side);
@@ -656,6 +664,7 @@ function renderDetails(data) {
     document.getElementById("filter-portfolio").value = "";
     document.getElementById("filter-offer").value = "";
     document.getElementById("filter-uc").value = "";
+    if (document.getElementById("filter-country")) document.getElementById("filter-country").value = "";
     refreshUcDropdown();
     ["det-bk","det-rs","det-ea","det-exp"].forEach(function (prefix) {
       var fromEl = document.getElementById(prefix + "-from");
@@ -788,6 +797,8 @@ function renderDetails(data) {
     var ucEl2 = document.getElementById("filter-uc");
     if (ofEl  && st.offer) ofEl.value  = st.offer;
     if (ucEl2 && st.uc)    ucEl2.value = st.uc;
+    var ctEl = document.getElementById("filter-country");
+    if (ctEl && st.country) ctEl.value = st.country;
     refreshUcDropdown();
     // Stage checkboxes
     if (st.stageChecked && st.stageChecked.length) {
@@ -843,6 +854,7 @@ function renderDetails(data) {
         portfolio:     (document.getElementById("filter-portfolio")  || {value:""}).value,
         offer:         (document.getElementById("filter-offer")      || {value:""}).value,
         uc:            (document.getElementById("filter-uc")         || {value:""}).value,
+        country:       (document.getElementById("filter-country")    || {value:""}).value,
         stageChecked:  getChecked("filter-stage"),
         optInChecked:  getChecked("filter-optin"),
         offerOptedInY: !!(document.getElementById("filter-offer-optedin-y") || {}).checked,
@@ -932,6 +944,8 @@ function renderDetails(data) {
       if (portfolioVal         && String(r["Deal CPI Portfolio"] || "") !== portfolioVal)                     return false;
       if (offerVal             && String(r["Track"] || "") !== offerVal)                                      return false;
       if (ucVal                && String(r["Sub-Track"] || "") !== ucVal)                                     return false;
+      var countryVal = document.getElementById("filter-country") ? document.getElementById("filter-country").value : "";
+      if (countryVal           && String(r["End Customer Country"] || "") !== countryVal)                     return false;
       if (offerOptedIn && !offerNotOptedIn && r["Offer opted-in?"] !== true)  return false;
       if (offerNotOptedIn && !offerOptedIn && r["Offer opted-in?"] === true)   return false;
       if (pviEligible      && !r["PVI Eligible"])   return false;
@@ -1699,6 +1713,7 @@ function renderDetails(data) {
           { label:"CR Party Name",           field:"CR Party Name" },
           { label:"CR Party ID",             field:"CR Party ID" },
           { label:"CX Customer BU ID",       field:"CX Customer BU ID" },
+          { label:"End Customer Country",    field:"End Customer Country" },
           { label:"Portfolio",               field:"Deal CPI Portfolio" },
           { label:"Offer",                   field:"Track" },
           { label:"Use Case",                field:"Sub-Track" },
