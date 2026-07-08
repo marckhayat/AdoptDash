@@ -485,7 +485,7 @@ tr.row-excluded:hover td  { opacity: 0.65; }
   max-width: 420px;
   pointer-events: all;
   cursor: grab;
-  transform-origin: top left;
+  transform-origin: center center;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   user-select: none;
 }
