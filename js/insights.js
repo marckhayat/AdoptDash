@@ -107,8 +107,8 @@ function renderTesting(data) {
 
   // View switcher
   html += '<ul class="nav nav-pills mb-4" id="testing-view-tabs">';
-  var _newTagCpi = new Date() < new Date('2026-09-28') ? '<span class="position-absolute text-danger fw-bold" style="top:1px;right:2px;font-size:0.5rem;line-height:1">NEW</span>' : '';
-  var _newTagUch = new Date() < new Date('2026-09-28') ? '<span class="position-absolute text-danger fw-bold" style="top:1px;right:2px;font-size:0.5rem;line-height:1">NEW</span>' : '';
+  var _newTagCpi = '';
+  var _newTagUch = '';
   html += '<li class="nav-item position-relative"><button class="nav-link active" id="tab-btn-cpi"><i class="bi bi-graph-up-arrow me-1"></i>CPI Adopt</button>' + _newTagCpi + '</li>';
   html += '<li class="nav-item"><button class="nav-link" id="tab-btn-pareto"><i class="bi bi-bar-chart-steps me-1"></i>Customer Analysis</button></li>';
   html += '<li class="nav-item position-relative"><button class="nav-link" id="tab-btn-uch"><i class="bi bi-heart-pulse me-1"></i>UC Health</button>' + _newTagUch + '</li>';
@@ -207,7 +207,7 @@ function renderTesting(data) {
 
   html += '<div class="row g-3 mt-1" id="uch-main-row">';
   html += '<div class="col-12 col-lg-3"><div class="card shadow-sm h-100"><div class="card-body">';
-  var _newTagStageChart = new Date() < new Date('2026-09-28') ? '<span class="text-danger fw-bold ms-1" style="font-size:0.5rem;line-height:1;vertical-align:super">NEW</span>' : '';
+  var _newTagStageChart = '';
   html += '<div class="d-flex align-items-center justify-content:between mb-3">';
   html += '<h6 class="card-title mb-0" id="uch-donut-title">Stage Distribution</h6>';
   html += _newTagStageChart;
