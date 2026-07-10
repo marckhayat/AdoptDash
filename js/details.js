@@ -1683,6 +1683,23 @@ function renderDetails(data) {
 
         // Collect active filter labels
         var activeFilters = [];
+
+        // Helper: epoch-day integer → locale date string
+        function epochDayToStr(val) {
+          var d = new Date(parseInt(val) * 86400000);
+          return isNaN(d.getTime()) ? val : d.toLocaleDateString(window.APP_LOCALE);
+        }
+        // Helper: read a date-slider range only if the user has moved it
+        function sliderRange(prefix, label) {
+          if (!window._sliderUserSet || !window._sliderUserSet[prefix]) return;
+          var fromEl = document.getElementById(prefix + "-from");
+          var toEl   = document.getElementById(prefix + "-to");
+          if (!fromEl || !toEl) return;
+          // Only report if the range has been narrowed from the full extent
+          if (fromEl.value === fromEl.min && toEl.value === toEl.max) return;
+          activeFilters.push(label + ": " + epochDayToStr(fromEl.value) + " - " + epochDayToStr(toEl.value));
+        }
+
         var crVal = document.getElementById("filter-crparty") ? document.getElementById("filter-crparty").value.trim() : "";
         if (crVal) activeFilters.push("Customer/Deal: " + crVal);
         var ttVal = document.getElementById("filter-2tpartner") ? document.getElementById("filter-2tpartner").value.trim() : "";
@@ -1696,13 +1713,35 @@ function renderDetails(data) {
         var _ctryExEl = document.getElementById("filter-country");
         if (_ctryExEl) { Array.from(_ctryExEl.selectedOptions).forEach(function(o){ activeFilters.push("Country: " + o.value); }); }
         getChecked("filter-stage").forEach(function(v) { activeFilters.push("Stage: " + v); });
+        // Current Stage slider
+        (function() {
+          var csFrom = document.getElementById("det-cs-from");
+          var csTo   = document.getElementById("det-cs-to");
+          if (csFrom && csTo && !(parseInt(csFrom.value) === parseInt(csFrom.min) && parseInt(csTo.value) === parseInt(csTo.max))) {
+            activeFilters.push("Current Stage: " + (currentStageOrder[csFrom.value] || csFrom.value) + " - " + (currentStageOrder[csTo.value] || csTo.value));
+          }
+        })();
         getChecked("filter-optin").forEach(function(v) { activeFilters.push("Opt-In: " + v); });
-        if (document.getElementById("filter-new-eligible") && document.getElementById("filter-new-eligible").checked) activeFilters.push("New Eligible");
-        if (document.getElementById("filter-expires-soon") && document.getElementById("filter-expires-soon").checked) activeFilters.push("Expires Soon (<1M)");
-        if (document.getElementById("filter-earned")       && document.getElementById("filter-earned").checked)       activeFilters.push("Earned");
-        if (document.getElementById("filter-ea")           && document.getElementById("filter-ea").checked)           activeFilters.push("EA");
+        if (document.getElementById("filter-offer-optedin-y") && document.getElementById("filter-offer-optedin-y").checked) activeFilters.push("Offer Opted-In: Y");
+        if (document.getElementById("filter-offer-optedin-n") && document.getElementById("filter-offer-optedin-n").checked) activeFilters.push("Offer Opted-In: N");
+        if (document.getElementById("filter-pvi-Eligible") && document.getElementById("filter-pvi-Eligible").checked) activeFilters.push("PVI: Eligible");
+        if (document.getElementById("filter-pvi-Onboard")  && document.getElementById("filter-pvi-Onboard").checked)  activeFilters.push("PVI: Onboard");
+        if (document.getElementById("filter-pvi-Adopt")    && document.getElementById("filter-pvi-Adopt").checked)    activeFilters.push("PVI: Adopt");
+        if (document.getElementById("filter-hide-excluded") && document.getElementById("filter-hide-excluded").checked) activeFilters.push("Hide Excluded");
+        if (document.getElementById("filter-new-eligible")  && document.getElementById("filter-new-eligible").checked)  activeFilters.push("New Eligible");
+        if (document.getElementById("filter-expires-soon")  && document.getElementById("filter-expires-soon").checked)  activeFilters.push("Expires Soon (<1M)");
+        if (document.getElementById("filter-earned")        && document.getElementById("filter-earned").checked)        activeFilters.push("Earned");
+        if (document.getElementById("filter-ea")            && document.getElementById("filter-ea").checked)            activeFilters.push("EA");
         if (document.getElementById("filter-aap")           && document.getElementById("filter-aap").checked)           activeFilters.push("AAP");
         if (document.getElementById("filter-max-incentive") && document.getElementById("filter-max-incentive").checked) activeFilters.push("Max Incentive");
+        sliderRange("det-bk",  "Booking Date");
+        sliderRange("det-rs",  "Opt-in Date");
+        sliderRange("det-exp", "Incentive Expiry Date");
+        sliderRange("det-ea",  "Earn Date");
+        // Annotation tags
+        if (activeTagFilters.length > 0) {
+          activeFilters.push("Tags (" + tagFilterMode + "): " + activeTagFilters.join(", "));
+        }
 
         // Build sheet rows array
         var sheetData = [];
