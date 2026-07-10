@@ -96,18 +96,27 @@ function renderOverview(data) {
   var fileName  = (window.APP_FILE_META && window.APP_FILE_META.name)  ? window.APP_FILE_META.name  : "";
   var rowsLabel = (window.APP_DATA) ? window.APP_DATA.length.toLocaleString() + " rows" : "";
 
-  // Partner / BE GEO / file date / file info header — all in one bar
-  html += '<div class="d-flex flex-wrap gap-4 align-items-center mb-3 px-1 py-2 border-bottom">';
-  if (isDisti) {
-    html += '<div><span class="text-muted small">Distributor</span><br/><strong class="fs-6">' + escHtml(distiLabel) + '</strong></div>';
-  } else {
-    html += '<div><span class="text-muted small">Partner</span><br/><strong class="fs-6">' + escHtml(partnerLabel) + '</strong></div>';
+  // Partner / BE GEO / file date — shown in the tab bar next to Insights
+  var tabBarMeta = document.getElementById("tab-bar-meta");
+  if (tabBarMeta) {
+    var metaHtml = "";
+    var metaStyle = 'style="line-height:1.2"';
+    var labelStyle = 'style="font-size:0.65rem;color:#6c757d;display:block;text-transform:uppercase;letter-spacing:0.04em"';
+    var valueStyle = 'style="font-size:0.75rem;font-weight:600;color:#1B2A3B"';
+    if (isDisti) {
+      metaHtml += '<div ' + metaStyle + '><span ' + labelStyle + '>Distributor</span><span ' + valueStyle + '>' + escHtml(distiLabel) + '</span></div>';
+    } else {
+      metaHtml += '<div ' + metaStyle + '><span ' + labelStyle + '>Partner</span><span ' + valueStyle + '>' + escHtml(partnerLabel) + '</span></div>';
+    }
+    metaHtml += '<div class="border-start ps-3" ' + metaStyle + '><span ' + labelStyle + '>BE GEO ID</span><span ' + valueStyle + '>' + escHtml(beGeoLabel) + '</span></div>';
+    if (fileDateLabel) {
+      metaHtml += '<div class="border-start ps-3" ' + metaStyle + '><span ' + labelStyle + '>' + escHtml(fileDateCaption) + '</span><span ' + valueStyle + '>' + escHtml(fileDateLabel) + '</span></div>';
+    }
+    tabBarMeta.innerHTML = metaHtml;
   }
-  html += '<div><span class="text-muted small">BE GEO ID</span><br/><strong class="fs-6">' + escHtml(beGeoLabel) + '</strong></div>';
-  if (fileDateLabel) {
-    html += '<div><span class="text-muted small">' + fileDateCaption + '</span><br/><strong class="fs-6">' + escHtml(fileDateLabel) + '</strong></div>';
-  }
-  html += '</div>';
+
+  // Action buttons bar (export, notifications, etc. are appended via DOM)
+  html += '<div class="d-flex flex-wrap gap-4 align-items-center mb-3 px-1 py-2 border-bottom"></div>';
 
   html += '<div id="ovw-table-area"></div>';
   html += '<p class="text-muted small fst-italic mt-2" style="font-size:0.78rem">' +

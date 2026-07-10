@@ -957,6 +957,7 @@ function renderDetails(data) {
       if (_ctrySelected.length > 0 && _ctrySelected.indexOf(String(r["End Customer Country"] || "")) === -1) return false;
       if (offerOptedIn && !offerNotOptedIn && r["Offer opted-in?"] !== true)  return false;
       if (offerNotOptedIn && !offerOptedIn && r["Offer opted-in?"] === true)   return false;
+      if (pviEligible      && !r["PVI Eligible"])    return false;
       if (pviOnboard       && !r["PVI Onboard"])    return false;
       if (pviAdopt         && !r["PVI Adopt"])      return false;
       if (ucMissed         && !r["UC progressed and missed w/o opt-in"]) return false;

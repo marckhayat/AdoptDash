@@ -116,13 +116,21 @@ function renderPVI(data) {
     var noData = m.eligUC === 0;
     var naStr  = '<span class="text-muted">N/A</span>';
 
+    // Build deep-link onclick strings for each PVI metric row
+    var pfQ = portfolio.replace(/'/g, "\\'");
+    function pviLink(checkboxId, label) {
+      return '<a href="#" class="ovw-drilldown-link" ' +
+        'onclick="event.preventDefault();window.navigateToDetails({portfolio:\'' + pfQ + '\',checkboxIds:[\'' + checkboxId + '\']})" ' +
+        'title="Open Details tab filtered to ' + portfolio + ' · ' + label + '">' + label + '</a>';
+    }
+
     var metricsHtml = '<table class="table table-sm mb-0" style="font-size:0.82rem">';
     metricsHtml += '<tbody>';
-    metricsHtml += '<tr><td>Eligible UCs</td><td class="text-end fw-semibold">' + m.eligUC + '</td><td class="text-end">' + fmtCurrency(m.eligBook) + '</td></tr>';
-    metricsHtml += '<tr><td>Eligible UCs Onboarded</td><td class="text-end">' + m.onbUC + '</td><td class="text-end">' + fmtCurrency(m.onbBook) + '</td></tr>';
+    metricsHtml += '<tr><td>' + pviLink('filter-pvi-Eligible', 'Eligible UCs') + '</td><td class="text-end fw-semibold">' + m.eligUC + '</td><td class="text-end">' + fmtCurrency(m.eligBook) + '</td></tr>';
+    metricsHtml += '<tr><td>' + pviLink('filter-pvi-Onboard', 'Eligible UCs Onboarded') + '</td><td class="text-end">' + m.onbUC + '</td><td class="text-end">' + fmtCurrency(m.onbBook) + '</td></tr>';
     metricsHtml += '<tr><td>Ratio Onboarded</td><td colspan="2" class="text-end">' + (noData ? naStr : fmtPct(m.onbRatio)) + '</td></tr>';
     metricsHtml += '<tr><td>PVI Engagement - Onboard (/10)</td><td colspan="2" class="text-end"><span style="font-size:1.4rem">' + (m.onbScore !== null ? m.onbScore : "N/A") + '</span></td></tr>';
-    metricsHtml += '<tr><td>Eligible UCs Adopted</td><td class="text-end">' + m.adpUC + '</td><td class="text-end">' + fmtCurrency(m.adpBook) + '</td></tr>';
+    metricsHtml += '<tr><td>' + pviLink('filter-pvi-Adopt', 'Eligible UCs Adopted') + '</td><td class="text-end">' + m.adpUC + '</td><td class="text-end">' + fmtCurrency(m.adpBook) + '</td></tr>';
     metricsHtml += '<tr><td>Ratio Adopted</td><td colspan="2" class="text-end">' + (noData ? naStr : fmtPct(m.adpRatio)) + '</td></tr>';
     metricsHtml += '<tr><td>PVI Engagement - Adopt (/10)</td><td colspan="2" class="text-end"><span style="font-size:1.4rem">' + (m.adpScore !== null ? m.adpScore : "N/A") + '</span></td></tr>';
     metricsHtml += '<tr class="table-active"><td class="fw-bold">PVI Engagement Total (/10)</td><td colspan="2" class="text-end"><span class="pvi-score-total fw-bold ' + scoreClass(m.totalScore) + '">' + (m.totalScore !== null ? m.totalScore.toFixed(1) : "N/A") + '</span></td></tr>';

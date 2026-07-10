@@ -17,7 +17,7 @@ var APP_FILTER_STATE = { details: null, lifecycle: null, cpiAdopt: null, custome
 var APP_IS_DISTI = false;
 var APP_MULTI_SESSIONS = null; // { sessions: [...], fileMeta: {...} }
 var APP_EXCL_ACTIVE = false;   // when true, excluded deals are removed from overview/pvi/insights calculations
-var APP_VERSION = "v6.10";
+var APP_VERSION = "v6.10.1";
 // Use the browser's preferred language for date formatting (respects user's browser locale setting)
 var APP_LOCALE = navigator.language || undefined;
 // Holds a FileSystemFileHandle from showOpenFilePicker() to be persisted after load
@@ -1853,6 +1853,8 @@ function resetApp() {
   sb.classList.remove("d-flex");
   sb.classList.add("d-none");
   document.getElementById("main-tab-bar").classList.add("d-none");
+  var tabBarMeta = document.getElementById("tab-bar-meta");
+  if (tabBarMeta) tabBarMeta.innerHTML = "";
   var cpiNav = document.getElementById("cpi-scroll-nav");
   if (cpiNav) cpiNav.remove();
 

@@ -163,6 +163,10 @@ function transformData(rawRows) {
     if (norm(r["Track"]) === "INTEGRATED SECURE OPERATIONS") {
       r["Track"] = "Cisco Secure Network Analytics";
     }
+    // Fix sub-track name (Cisco Secure Network Analytics → Network Security Analytics)
+    if (norm(r["Sub-Track"]) === "CISCO SECURE NETWORK ANALYTICS") {
+      r["Sub-Track"] = "Network Security Analytics";
+    }
 
     // Step 2b: Fix portfolio when set to "No Offer" — look up by offer, then by use case
     if (norm(r["Deal CPI Portfolio"]) === "NO OFFER" || norm(r["Deal CPI Portfolio"]) === "") {
