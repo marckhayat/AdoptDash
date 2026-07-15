@@ -52,7 +52,8 @@ function renderDetails(data) {
     expiresSoon: false,
     bkFrom: "", bkTo: "",
     rsFrom: "", rsTo: "",
-    expFrom: "", expTo: ""
+    expFrom: "", expTo: "",
+    pgFrom: "", pgTo: ""
   };
 
   var PAGE_SIZE = 50;
@@ -378,6 +379,17 @@ function renderDetails(data) {
         });
       });
       return { min: mn, max: mx };
+    })(),
+    pg:  (function() {
+      var PG_COLS = ["Stage Completion Date(onboard)", "Stage Completion Date (Implement)", "Stage Completion Date(Use)", "Stage Completion Date(Engage)", "Stage Completion Date(Adopt)"];
+      var mn = null, mx = null;
+      data.forEach(function(r) {
+        PG_COLS.forEach(function(c) {
+          var d = toDate(r[c]);
+          if (d) { if (!mn || d < mn) mn = d; if (!mx || d > mx) mx = d; }
+        });
+      });
+      return { min: mn, max: mx };
     })()
   };
 
@@ -417,7 +429,17 @@ function renderDetails(data) {
   html += '</div>';
   html += '</div>';
   if (!has2TPartner) {
-    html += makeCheckboxGroup("PVI" + tip("UCs included in the PVI Engagement score calculations."), "filter-pvi", ["Eligible", "Onboard", "Adopt"]);
+    html += '<div class="filter-group"><label class="group-label">PVI' + tip("UCs included in the PVI Engagement score calculations.") + '</label>' +
+      '<div class="btn-group btn-group-sm w-100" id="filter-pvi" role="group">' +
+      '<input type="radio" class="btn-check" name="filter-pvi" id="filter-pvi-all" value="" autocomplete="off" checked>' +
+      '<label class="btn btn-outline-secondary" for="filter-pvi-all">All</label>' +
+      '<input type="radio" class="btn-check" name="filter-pvi" id="filter-pvi-Eligible" value="Eligible" autocomplete="off">' +
+      '<label class="btn btn-outline-secondary" for="filter-pvi-Eligible">Eligible</label>' +
+      '<input type="radio" class="btn-check" name="filter-pvi" id="filter-pvi-Onboard" value="Onboard" autocomplete="off">' +
+      '<label class="btn btn-outline-secondary" for="filter-pvi-Onboard">Onboard</label>' +
+      '<input type="radio" class="btn-check" name="filter-pvi" id="filter-pvi-Adopt" value="Adopt" autocomplete="off">' +
+      '<label class="btn btn-outline-secondary" for="filter-pvi-Adopt">Adopt</label>' +
+      '</div></div>';
   }
 
   html += makeCheckboxGroup("Stage", "filter-stage", stages, {
@@ -439,6 +461,7 @@ function renderDetails(data) {
   html += '<div class="filter-group"><label class="group-label">Booking Date</label>'          + makeDateSlider("det-bk",  dateBounds.bk)  + '</div>';
   html += '<div class="filter-group"><label class="group-label">Opt-in Date</label>'            + makeDateSlider("det-rs",  dateBounds.rs)  + '</div>';
   html += '<div class="filter-group"><label class="group-label">Incentive Expiry Date</label>'  + makeDateSlider("det-exp", dateBounds.exp) + '</div>';
+  html += '<div class="filter-group"><label class="group-label">Progression Date' + tip("Any stage completion date (Onboard, Implement, Use, Engage, Adopt) within this range.") + '</label>' + makeDateSlider("det-pg", dateBounds.pg) + '</div>';
   html += '<div class="filter-group"><label class="group-label">Earn Date' + tip("Moving this slider will automatically check the Earned filter.") + '</label>'              + makeDateSlider("det-ea",  dateBounds.ea)  + '</div>';
 
   if (countryList.length > 0) {
@@ -515,11 +538,16 @@ function renderDetails(data) {
     }
     if (fromLbl) fromLbl.textContent = new Date(fromVal * 86400000).toLocaleDateString(window.APP_LOCALE);
     if (toLbl)   toLbl.textContent   = new Date(toVal   * 86400000).toLocaleDateString(window.APP_LOCALE);
+    var active = !!(window._sliderUserSet && window._sliderUserSet[prefix]);
+    if (fillEl) fillEl.style.background = active ? "var(--cisco-blue2)" : "#d9d9d9";
   }
 
   // Wire up filters
   el.querySelectorAll('input[type=checkbox]').forEach(function (cb) {
     cb.addEventListener("change", function () { currentPage = 1; applyFiltersAndRender(); });
+  });
+  el.querySelectorAll('input[name="filter-pvi"]').forEach(function (rb) {
+    rb.addEventListener("change", function () { currentPage = 1; applyFiltersAndRender(); });
   });
   if (document.getElementById("filter-2tpartner")) {
     document.getElementById("filter-2tpartner").addEventListener("input", function () {
@@ -584,7 +612,7 @@ function renderDetails(data) {
   if (document.getElementById("filter-country")) {
     document.getElementById("filter-country").addEventListener("change", function () { currentPage = 1; applyFiltersAndRender(); });
   }
-  ["det-bk","det-rs","det-ea","det-exp"].forEach(function (prefix) {
+  ["det-bk","det-rs","det-ea","det-exp","det-pg"].forEach(function (prefix) {
     ["from","to"].forEach(function (side) {
       var el2 = document.getElementById(prefix + "-" + side);
       if (!el2) return;
@@ -664,6 +692,8 @@ function renderDetails(data) {
     var _clrBtns = ["det-2tpartner-clear","det-crparty-clear"];
     _clrBtns.forEach(function(id) { var b = document.getElementById(id); if (b) b.classList.add("d-none"); });
     el.querySelectorAll('input[type=checkbox]').forEach(function (cb) { cb.checked = false; });
+    var _pviAll = document.getElementById("filter-pvi-all");
+    if (_pviAll) _pviAll.checked = true;
     activeTagFilters = [];
     document.getElementById("filter-portfolio").value = "";
     document.getElementById("filter-offer").value = "";
@@ -672,7 +702,7 @@ function renderDetails(data) {
       Array.from(document.getElementById("filter-country").options).forEach(function(o){ o.selected = false; });
     }
     refreshUcDropdown();
-    ["det-bk","det-rs","det-ea","det-exp"].forEach(function (prefix) {
+    ["det-bk","det-rs","det-ea","det-exp","det-pg"].forEach(function (prefix) {
       var fromEl = document.getElementById(prefix + "-from");
       var toEl   = document.getElementById(prefix + "-to");
       if (fromEl) fromEl.value = fromEl.min;
@@ -760,7 +790,7 @@ function renderDetails(data) {
   // Restore persisted filter state if no deep-link was applied
   if (_detSaved && !_hadDeepLink) {
     _restoreDetailsState(_detSaved);
-    ["det-bk","det-rs","det-ea","det-exp"].forEach(updateSliderDisplay);
+    ["det-bk","det-rs","det-ea","det-exp","det-pg"].forEach(updateSliderDisplay);
     updateStageSliderDisplay();
   }
 
@@ -818,17 +848,18 @@ function renderDetails(data) {
     }
     // Boolean checkboxes
     var _boolMap = { offerOptedInY:"filter-offer-optedin-y", offerOptedInN:"filter-offer-optedin-n",
-      pviEligible:"filter-pvi-Eligible", pviOnboard:"filter-pvi-Onboard", pviAdopt:"filter-pvi-Adopt",
       newEligible:"filter-new-eligible", expiresSoon:"filter-expires-soon",
       earned:"filter-earned", ea:"filter-ea", aap:"filter-aap", maxIncentive:"filter-max-incentive" };
     Object.keys(_boolMap).forEach(function(key) {
       var cbEl = document.getElementById(_boolMap[key]);
       if (cbEl && st[key]) cbEl.checked = true;
     });
+    if (st.pvi) { var _pviEl = document.getElementById("filter-pvi-" + st.pvi); if (_pviEl) _pviEl.checked = true; }
     // Sliders
     [["det-bk-from","bkFrom"],["det-bk-to","bkTo"],["det-rs-from","rsFrom"],["det-rs-to","rsTo"],
      ["det-ea-from","eaFrom"],["det-ea-to","eaTo"],
-     ["det-exp-from","expFrom"],["det-exp-to","expTo"],["det-cs-from","csFrom"],["det-cs-to","csTo"]
+    ["det-exp-from","expFrom"],["det-exp-to","expTo"],
+    ["det-pg-from","pgFrom"],["det-pg-to","pgTo"],["det-cs-from","csFrom"],["det-cs-to","csTo"]
     ].forEach(function(p) {
       var slEl = document.getElementById(p[0]);
       if (slEl && st[p[1]] !== null && st[p[1]] !== undefined && st[p[1]] !== "") slEl.value = st[p[1]];
@@ -867,9 +898,7 @@ function renderDetails(data) {
         optInChecked:  getChecked("filter-optin"),
         offerOptedInY: !!(document.getElementById("filter-offer-optedin-y") || {}).checked,
         offerOptedInN: !!(document.getElementById("filter-offer-optedin-n") || {}).checked,
-        pviEligible:   !!(document.getElementById("filter-pvi-Eligible")    || {}).checked,
-        pviOnboard:    !!(document.getElementById("filter-pvi-Onboard")     || {}).checked,
-        pviAdopt:      !!(document.getElementById("filter-pvi-Adopt")       || {}).checked,
+        pvi:           (function(){ var el = document.querySelector('input[name="filter-pvi"]:checked'); return el ? el.value : ""; })(),
         newEligible:   !!(document.getElementById("filter-new-eligible")    || {}).checked,
         expiresSoon:   !!(document.getElementById("filter-expires-soon")    || {}).checked,
         earned:        !!(document.getElementById("filter-earned")          || {}).checked,
@@ -884,6 +913,8 @@ function renderDetails(data) {
         eaTo:          window._sliderUserSet["det-ea"]  ? (document.getElementById("det-ea-to")    || {value:null}).value : null,
         expFrom:       window._sliderUserSet["det-exp"] ? (document.getElementById("det-exp-from") || {value:null}).value : null,
         expTo:         window._sliderUserSet["det-exp"] ? (document.getElementById("det-exp-to")   || {value:null}).value : null,
+        pgFrom:        window._sliderUserSet["det-pg"]  ? (document.getElementById("det-pg-from")  || {value:null}).value : null,
+        pgTo:          window._sliderUserSet["det-pg"]  ? (document.getElementById("det-pg-to")    || {value:null}).value : null,
         csFrom:        (document.getElementById("det-cs-from")  || {value:null}).value,
         csTo:          (document.getElementById("det-cs-to")    || {value:null}).value,
         sliderUserSet: window._sliderUserSet ? JSON.parse(JSON.stringify(window._sliderUserSet)) : {},
@@ -899,9 +930,7 @@ function renderDetails(data) {
     var ucVal            = document.getElementById("filter-uc").value;
     var offerOptedIn     = document.getElementById("filter-offer-optedin-y") ? document.getElementById("filter-offer-optedin-y").checked : false;
     var offerNotOptedIn  = document.getElementById("filter-offer-optedin-n") ? document.getElementById("filter-offer-optedin-n").checked : false;
-    var pviEligible      = document.getElementById("filter-pvi-Eligible") && document.getElementById("filter-pvi-Eligible").checked;
-    var pviOnboard       = document.getElementById("filter-pvi-Onboard")  && document.getElementById("filter-pvi-Onboard").checked;
-    var pviAdopt         = document.getElementById("filter-pvi-Adopt")    && document.getElementById("filter-pvi-Adopt").checked;
+    var pviVal           = (function(){ var el = document.querySelector('input[name="filter-pvi"]:checked'); return el ? el.value : ""; })();
     var ucMissed         = ucMissedPreset;
     var newEligible      = document.getElementById("filter-new-eligible").checked;
     var expiresSoon      = document.getElementById("filter-expires-soon").checked;
@@ -917,6 +946,8 @@ function renderDetails(data) {
     var eaTo    = document.getElementById("det-ea-to");
     var expFrom = document.getElementById("det-exp-from");
     var expTo   = document.getElementById("det-exp-to");
+    var pgFrom  = document.getElementById("det-pg-from");
+    var pgTo    = document.getElementById("det-pg-to");
     function sliderVal(el) { return el ? new Date(parseInt(el.value) * 86400000) : null; }
     function atMin(el)     { return !el || parseInt(el.value) === parseInt(el.min); }
     function atMax(el)     { return !el || parseInt(el.value) === parseInt(el.max); }
@@ -933,6 +964,8 @@ function renderDetails(data) {
     }
     var expFromDate = atMin(expFrom) ? null : sliderVal(expFrom);
     var expToDate   = atMax(expTo)   ? null : sliderVal(expTo);
+    var pgFromDate  = atMin(pgFrom)  ? null : sliderVal(pgFrom);
+    var pgToDate    = atMax(pgTo)    ? null : sliderVal(pgTo);
     var csFromEl  = document.getElementById("det-cs-from");
     var csToEl    = document.getElementById("det-cs-to");
     var csFromIdx = csFromEl ? parseInt(csFromEl.value) : 0;
@@ -957,9 +990,9 @@ function renderDetails(data) {
       if (_ctrySelected.length > 0 && _ctrySelected.indexOf(String(r["End Customer Country"] || "")) === -1) return false;
       if (offerOptedIn && !offerNotOptedIn && r["Offer opted-in?"] !== true)  return false;
       if (offerNotOptedIn && !offerOptedIn && r["Offer opted-in?"] === true)   return false;
-      if (pviEligible      && !r["PVI Eligible"])    return false;
-      if (pviOnboard       && !r["PVI Onboard"])    return false;
-      if (pviAdopt         && !r["PVI Adopt"])      return false;
+      if (pviVal === "Eligible" && !r["PVI Eligible"]) return false;
+      if (pviVal === "Onboard"  && !r["PVI Onboard"])  return false;
+      if (pviVal === "Adopt"    && !r["PVI Adopt"])     return false;
       if (ucMissed         && !r["UC progressed and missed w/o opt-in"]) return false;
       if (newEligible      && !r["New eligible"])                                                         return false;
       if (expiresSoon) {
@@ -1026,6 +1059,17 @@ function renderDetails(data) {
           if (expToDate   && d3 > expToDate)   return false;
         }
       }
+      if (pgFromDate || pgToDate) {
+        var PG_COLS = ["Stage Completion Date(onboard)", "Stage Completion Date (Implement)", "Stage Completion Date(Use)", "Stage Completion Date(Engage)", "Stage Completion Date(Adopt)"];
+        var hasMatch = PG_COLS.some(function(c) {
+          var d = toDate(r[c]);
+          if (!d) return false;
+          if (pgFromDate && d < pgFromDate) return false;
+          if (pgToDate   && d > pgToDate)   return false;
+          return true;
+        });
+        if (!hasMatch) return false;
+      }
 
       // Exclude filter: hide excluded rows when checkbox is checked
       var _hideExcl = !!(document.getElementById("filter-hide-excluded") && document.getElementById("filter-hide-excluded").checked);
@@ -1050,7 +1094,11 @@ function renderDetails(data) {
         var optIn = toDate(r["Adopt Rebate Start Date"]);
         return EARN_COLS3.map(function(c) { var d = toDate(r[c]); return (d && (!optIn || d >= optIn)) ? d : null; });
       }},
-      { prefix: "det-exp", get: function(r) { return [toDate(r["Deal Incentive Expiry Date"])]; } }
+      { prefix: "det-exp", get: function(r) { return [toDate(r["Deal Incentive Expiry Date"])]; } },
+      { prefix: "det-pg",  get: function(r) {
+        var PG_COLS = ["Stage Completion Date(onboard)", "Stage Completion Date (Implement)", "Stage Completion Date(Use)", "Stage Completion Date(Engage)", "Stage Completion Date(Adopt)"];
+        return PG_COLS.map(function(c) { return toDate(r[c]); });
+      }}
     ];
     sliderDefs.forEach(function(def) {
       var fromEl = document.getElementById(def.prefix + "-from");
@@ -1190,10 +1238,11 @@ function renderDetails(data) {
       { label: "Use Case",                   field: "Sub-Track",                    style: "min-width:160px" },
       { label: "Current Stage",              field: "Current stage",                isCurrentStage: true },
       ...(showCompletionDates ? [
-        { label: "Onboard<br>Completion",    field: "Stage Completion Date(onboard)", isDate: true, isEarnDate: true },
-        { label: "Use<br>Completion",        field: "Stage Completion Date(Use)",     isDate: true, isEarnDate: true },
-        { label: "Engage<br>Completion",     field: "Stage Completion Date(Engage)",  isDate: true, isEarnDate: true },
-        { label: "Adopt<br>Completion",      field: "Stage Completion Date(Adopt)",   isDate: true, isEarnDate: true },
+        { label: "Onboard<br>Completion",    field: "Stage Completion Date(onboard)",     isDate: true, isEarnDate: true },
+        { label: "Implement<br>Completion",  field: "Stage Completion Date (Implement)",  isDate: true, isEarnDate: true },
+        { label: "Use<br>Completion",        field: "Stage Completion Date(Use)",         isDate: true, isEarnDate: true },
+        { label: "Engage<br>Completion",     field: "Stage Completion Date(Engage)",      isDate: true, isEarnDate: true },
+        { label: "Adopt<br>Completion",      field: "Stage Completion Date(Adopt)",       isDate: true, isEarnDate: true },
         { label: "Stages Completed<br>Before Opt-in", field: "_missedStages", isEarnDate: true },
       ] : []),
       { label: "Days in<br>Stage",              field: "Days in stage",                isDaysInStage: true },
@@ -1467,10 +1516,11 @@ function renderDetails(data) {
           } else if (c.field === "_missedStages") {
             var optInDate = toDate(r["Adopt Rebate Start Date"]);
             var msParts = [];
-            [{ name: "Onboard", f: "Stage Completion Date(onboard)" },
-             { name: "Use",     f: "Stage Completion Date(Use)" },
-             { name: "Engage",  f: "Stage Completion Date(Engage)" },
-             { name: "Adopt",   f: "Stage Completion Date(Adopt)" }].forEach(function (s) {
+            [{ name: "Onboard",     f: "Stage Completion Date(onboard)" },
+             { name: "Implement",   f: "Stage Completion Date (Implement)" },
+             { name: "Use",         f: "Stage Completion Date(Use)" },
+             { name: "Engage",      f: "Stage Completion Date(Engage)" },
+             { name: "Adopt",       f: "Stage Completion Date(Adopt)" }].forEach(function (s) {
               var cd = toDate(r[s.f]);
               if (cd && optInDate && cd < optInDate) msParts.push(s.name);
             });
@@ -1765,9 +1815,8 @@ function renderDetails(data) {
         getChecked("filter-optin").forEach(function(v) { activeFilters.push("Opt-In: " + v); });
         if (document.getElementById("filter-offer-optedin-y") && document.getElementById("filter-offer-optedin-y").checked) activeFilters.push("Offer Opted-In: Y");
         if (document.getElementById("filter-offer-optedin-n") && document.getElementById("filter-offer-optedin-n").checked) activeFilters.push("Offer Opted-In: N");
-        if (document.getElementById("filter-pvi-Eligible") && document.getElementById("filter-pvi-Eligible").checked) activeFilters.push("PVI: Eligible");
-        if (document.getElementById("filter-pvi-Onboard")  && document.getElementById("filter-pvi-Onboard").checked)  activeFilters.push("PVI: Onboard");
-        if (document.getElementById("filter-pvi-Adopt")    && document.getElementById("filter-pvi-Adopt").checked)    activeFilters.push("PVI: Adopt");
+        var _pviChecked = document.querySelector('input[name="filter-pvi"]:checked');
+        if (_pviChecked && _pviChecked.value) activeFilters.push("PVI: " + _pviChecked.value);
         if (document.getElementById("filter-hide-excluded") && document.getElementById("filter-hide-excluded").checked) activeFilters.push("Hide Excluded");
         if (document.getElementById("filter-new-eligible")  && document.getElementById("filter-new-eligible").checked)  activeFilters.push("New Eligible");
         if (document.getElementById("filter-expires-soon")  && document.getElementById("filter-expires-soon").checked)  activeFilters.push("Expires Soon (<1M)");
@@ -1778,6 +1827,7 @@ function renderDetails(data) {
         sliderRange("det-bk",  "Booking Date");
         sliderRange("det-rs",  "Opt-in Date");
         sliderRange("det-exp", "Incentive Expiry Date");
+        sliderRange("det-pg",  "Progression Date");
         sliderRange("det-ea",  "Earn Date");
         // Annotation tags
         if (activeTagFilters.length > 0) {
@@ -1809,10 +1859,11 @@ function renderDetails(data) {
           { label:"Offer",                   field:"Track" },
           { label:"Use Case",                field:"Sub-Track" },
           { label:"Current Stage",           field:"Current stage" },
-          { label:"Onboard Completion",      field:"Stage Completion Date(onboard)", isDate:true },
-          { label:"Use Completion",          field:"Stage Completion Date(Use)",     isDate:true },
-          { label:"Engage Completion",       field:"Stage Completion Date(Engage)",  isDate:true },
-          { label:"Adopt Completion",        field:"Stage Completion Date(Adopt)",   isDate:true },
+          { label:"Onboard Completion",        field:"Stage Completion Date(onboard)",   isDate:true },
+          { label:"Implement Completion",      field:"Stage Completion Date (Implement)", isDate:true },
+          { label:"Use Completion",            field:"Stage Completion Date(Use)",       isDate:true },
+          { label:"Engage Completion",         field:"Stage Completion Date(Engage)",    isDate:true },
+          { label:"Adopt Completion",          field:"Stage Completion Date(Adopt)",     isDate:true },
           { label:"Stages Completed Before Opt-in", field:"_missedStages" },
           { label:"Days in Stage",           field:"Days in stage" },
           { label:"Days Since Opt-in",       field:"_daysSinceOptIn", isDaysSinceOptInExport: true },
@@ -1883,10 +1934,11 @@ function renderDetails(data) {
             if (c.field === "_missedStages") {
               var optInDate = toDate(r["Adopt Rebate Start Date"]);
               var msParts = [];
-              [{ name: "Onboard", f: "Stage Completion Date(onboard)" },
-               { name: "Use",     f: "Stage Completion Date(Use)" },
-               { name: "Engage",  f: "Stage Completion Date(Engage)" },
-               { name: "Adopt",   f: "Stage Completion Date(Adopt)" }].forEach(function (s) {
+              [{ name: "Onboard",   f: "Stage Completion Date(onboard)" },
+               { name: "Implement", f: "Stage Completion Date (Implement)" },
+               { name: "Use",       f: "Stage Completion Date(Use)" },
+               { name: "Engage",    f: "Stage Completion Date(Engage)" },
+               { name: "Adopt",     f: "Stage Completion Date(Adopt)" }].forEach(function (s) {
                 var cd = toDate(r[s.f]);
                 if (cd && optInDate && cd < optInDate) msParts.push(s.name);
               });

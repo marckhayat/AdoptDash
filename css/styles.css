@@ -282,6 +282,16 @@
 .filter-sidebar .filter-group {
   margin-bottom: 1rem;
 }
+.filter-sidebar .filter-group #filter-pvi .btn {
+  font-size: 0.82rem;
+  padding-top: 0.15rem;
+  padding-bottom: 0.15rem;
+}
+.filter-sidebar .filter-group #filter-pvi .btn-check:checked + .btn {
+  background-color: var(--cisco-blue2);
+  border-color: var(--cisco-blue2);
+  color: #fff;
+}
 .filter-sidebar .filter-group label.group-label {
   font-weight: 700;
   color: var(--cisco-dark);
@@ -290,6 +300,18 @@
   letter-spacing: 0.05em;
   margin-bottom: 0.3rem;
   display: block;
+}
+
+/* ── Partner drag-and-drop zone ──────────────────────────── */
+.ws-drop-zone {
+  border: 2px dashed #c0cfe8;
+  border-radius: 10px;
+  padding: 1.5rem 1rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+.ws-drop-zone--active {
+  border-color: var(--cisco-blue2);
+  background: rgba(27, 95, 173, 0.05);
 }
 
 /* ── Chart containers ────────────────────────────────────── */

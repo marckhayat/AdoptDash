@@ -17,7 +17,7 @@ var APP_FILTER_STATE = { details: null, lifecycle: null, cpiAdopt: null, custome
 var APP_IS_DISTI = false;
 var APP_MULTI_SESSIONS = null; // { sessions: [...], fileMeta: {...} }
 var APP_EXCL_ACTIVE = false;   // when true, excluded deals are removed from overview/pvi/insights calculations
-var APP_VERSION = "v6.11";
+var APP_VERSION = "v6.12";
 // Use the browser's preferred language for date formatting (respects user's browser locale setting)
 var APP_LOCALE = navigator.language || undefined;
 // Holds a FileSystemFileHandle from showOpenFilePicker() to be persisted after load
@@ -676,6 +676,7 @@ function restoreUploadSection(cachedEntries) {
   // ── Build two-column layout ────────────────────────────────────────────────
   sec.innerHTML =
     '<div class="container-fluid py-4" style="max-width:1400px">' +
+    '<p class="small mb-3 text-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="16" height="16" style="vertical-align:-2px;margin-right:4px"><path d="M50,0 A50,50 0 0,1 93.3,75 L50,50Z" fill="#EA4335"/><path d="M93.3,75 A50,50 0 0,1 6.7,75 L50,50Z" fill="#FBBC05"/><path d="M6.7,75 A50,50 0 0,1 50,0 L50,50Z" fill="#34A853"/><circle cx="50" cy="50" r="33" fill="white"/><circle cx="50" cy="50" r="20" fill="#4285F4"/></svg><strong>Chrome recommended for the best experience.</strong></p>' +
     '<div class="row g-4">' +
 
     // ── LEFT: Partner column ──────────────────────────────────────────────────
@@ -692,6 +693,7 @@ function restoreUploadSection(cachedEntries) {
     '</ul>' +
     // File upload panel
     '<div id="ws-panel-file" class="text-center">' +
+    '<div id="ws-drop-zone" class="ws-drop-zone">' +
     '<i class="bi bi-cloud-upload cisco-icon-lg mb-3"></i>' +
     '<p class="text-muted mb-3">Upload your Workspan report export<br/>' +
     '<small><a href="https://app.workspan.com/reports/view/19849" target="_blank" rel="noopener"><strong>Report 19849</strong></a> for Partners &nbsp;|&nbsp; <a href="https://app.workspan.com/reports/view/21766" target="_blank" rel="noopener"><strong>Report 21766</strong></a> for Distributors</small>' +
@@ -700,8 +702,10 @@ function restoreUploadSection(cachedEntries) {
     '<i class="bi bi-exclamation-triangle me-1"></i><strong>For large exports (&gt;20 MB), use CSV.</strong><br/>' +
     'In Workspan: <em>Export → CSV</em>. CSV handles any number of rows.' +
     '</div>' +
-    '<button id="ws-choose-btn" class="btn btn-cisco btn-lg mb-3 px-5"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Choose File (.xlsx or .csv)</button>' +
+    '<button id="ws-choose-btn" class="btn btn-cisco btn-lg mb-2 px-5"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Choose File (.xlsx or .csv)</button>' +
+    '<p class="text-muted small mb-0"><i class="bi bi-arrow-down-circle me-1"></i>or drag &amp; drop a file here</p>' +
     '<input type="file" id="file-input" accept=".xlsx,.xls,.csv" class="d-none" />' +
+    '</div>' +
     '</div>' +
     // API panel
     '<div id="ws-panel-api" class="d-none text-start">' +
@@ -746,7 +750,6 @@ function restoreUploadSection(cachedEntries) {
     '<div class="card shadow-sm border-warning mb-3">' +
     '<div class="card-header bg-warning bg-opacity-10 fw-semibold" style="font-size:0.9rem"><i class="bi bi-lock-fill me-2 text-warning"></i>Cisco-internal</div>' +
     '<div class="card-body p-4 text-center">' +
-    '<p class="small mb-3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="16" height="16" style="vertical-align:-2px;margin-right:4px"><path d="M50,0 A50,50 0 0,1 93.3,75 L50,50Z" fill="#EA4335"/><path d="M93.3,75 A50,50 0 0,1 6.7,75 L50,50Z" fill="#FBBC05"/><path d="M6.7,75 A50,50 0 0,1 50,0 L50,50Z" fill="#34A853"/><circle cx="50" cy="50" r="33" fill="white"/><circle cx="50" cy="50" r="20" fill="#4285F4"/></svg><strong>Chrome recommended for the best experience.</strong></p>' +
     '<div class="row g-2 mb-3 align-items-end">' +
     '<div class="col-auto"><label class="form-label small fw-semibold mb-1">Region</label>' +
     '<select id="lci-region" class="form-select form-select-sm">' +
@@ -846,6 +849,27 @@ function restoreUploadSection(cachedEntries) {
   });
 
   document.getElementById("file-input").addEventListener("change", handleFileUpload);
+
+  // ── Drag-and-drop on partner upload zone ──────────────────────────────────
+  var _dropZone = document.getElementById("ws-drop-zone");
+  if (_dropZone) {
+    _dropZone.addEventListener("dragover", function (e) {
+      e.preventDefault();
+      _dropZone.classList.add("ws-drop-zone--active");
+    });
+    _dropZone.addEventListener("dragleave", function (e) {
+      if (!_dropZone.contains(e.relatedTarget)) {
+        _dropZone.classList.remove("ws-drop-zone--active");
+      }
+    });
+    _dropZone.addEventListener("drop", function (e) {
+      e.preventDefault();
+      _dropZone.classList.remove("ws-drop-zone--active");
+      var file = e.dataTransfer.files[0];
+      if (!file) return;
+      processPartnerFile(file);
+    });
+  }
 
   // ── API tab toggle ────────────────────────────────────────────────────────
   // Hide the API tab when running from GitHub Pages (proxy not available)
