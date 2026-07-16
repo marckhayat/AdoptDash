@@ -2057,7 +2057,7 @@ window.renderDetails = renderDetails;
     popup.style.transform = isHovered ? "scale(" + zoomLevel + ")" : "scale(1)";
   }
 
-  function showPopup(trigger) {
+  function showPopup(trigger, mouseX, mouseY) {
     clearTimeout(hideTimer);
     var imgSrc = trigger.getAttribute("data-criteria");
     if (!imgSrc) return;
@@ -2067,13 +2067,12 @@ window.renderDetails = renderDetails;
 
     popup.style.display = "block";
 
-    var rect = trigger.getBoundingClientRect();
     var popupW = 420;
-    var gap = 8;
-    var left = rect.right + gap;
-    if (left + popupW > window.innerWidth - 8) left = rect.left - popupW - gap;
+    var gap = 12;
+    var left = mouseX + gap;
+    if (left + popupW > window.innerWidth - 8) left = mouseX - popupW - gap;
     if (left < 8) left = 8;
-    var top = Math.max(8, Math.min(rect.top, window.innerHeight - 50));
+    var top = Math.max(8, Math.min(mouseY - 20, window.innerHeight - 50));
 
     popup.style.left = left + "px";
     popup.style.top  = top + "px";
@@ -2090,7 +2089,7 @@ window.renderDetails = renderDetails;
   // Show/hide via trigger
   document.addEventListener("mouseover", function (e) {
     var trigger = e.target.closest(".uc-criteria-trigger");
-    if (trigger) { showPopup(trigger); return; }
+    if (trigger) { showPopup(trigger, e.clientX, e.clientY); return; }
     if (e.target.closest("#uc-criteria-popup")) clearTimeout(hideTimer);
   });
 
