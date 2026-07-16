@@ -1249,11 +1249,10 @@ function renderDetails(data) {
       ...(showDaysSinceOptIn ? [
         { label: "Days Since<br>Opt-in",     field: "_daysSinceOptIn",              isDaysSinceOptInCol: true },
       ] : []),
-      { label: "Stage Progress",             field: "Current Stage Progress",       isStageProgress: true },
+      { label: "Pending Tasks",              field: "Current stage pending tasks",  style: "min-width:200px", isPendingTasks: true },
       ...(showOverallProgress ? [
         { label: "Overall<br>Progress",      field: "Overall Progress",             isOverallProgress: true },
       ] : []),
-      { label: "Pending Tasks",              field: "Current stage pending tasks",  style: "width:80px" },
       { label: "Booking Date",               field: "Booking Date",                 isDate: true, isBookingDate: true },
       ...(showDealDetails ? [
         { label: "Deal ID",                  field: "Deal ID",                                       isDealDetailCol: true },
@@ -1305,11 +1304,15 @@ function renderDetails(data) {
         return '<th style="font-size:0.8rem;border-bottom:4px solid #7ec8e3">' + c.label + '</th>';
       }
       if (c.isStageProgress) {
-        var spToggleIcon  = showOverallProgress ? "bi-dash-circle" : "bi-plus-circle";
-        var spToggleTitle = showOverallProgress ? "Hide overall progress" : "Show overall progress";
-        return '<th style="cursor:pointer;user-select:none' + (showOverallProgress ? ';border-bottom:4px solid #7ec8e3' : '') + '">' +
+        return '<th>' + c.label + '</th>';
+      }
+      if (c.isPendingTasks) {
+        var ptToggleIcon  = showOverallProgress ? "bi-dash-circle" : "bi-plus-circle";
+        var ptToggleTitle = showOverallProgress ? "Hide overall progress" : "Show overall progress";
+        var ptStyle = 'style="min-width:200px' + (showOverallProgress ? ';border-bottom:4px solid #7ec8e3' : '') + '"';
+        return '<th ' + ptStyle + '>' +
           c.label +
-          ' <i class="bi ' + spToggleIcon + '" id="det-overallprogress-toggle" title="' + spToggleTitle + '" style="font-size:0.8rem;opacity:0.7;cursor:pointer;vertical-align:middle" onclick="event.stopPropagation()"></i></th>';
+          ' <i class="bi ' + ptToggleIcon + '" id="det-overallprogress-toggle" title="' + ptToggleTitle + '" style="font-size:0.8rem;opacity:0.7;cursor:pointer;vertical-align:middle" onclick="event.stopPropagation()"></i></th>';
       }
       if (c.isDaysInStage) {
         var disSortIcon = sortField === c.field ? (sortDir === "asc" ? " ▲" : " ▼") : " ⇅";
@@ -1536,6 +1539,16 @@ function renderDetails(data) {
               cell = tasks.map(function(t){ return '<div style="white-space:nowrap">' + escHtml(t) + '</div>'; }).join('');
             } else {
               cell = "";
+            }
+            var ptSpVal = r["Current Stage Progress"];
+            var ptSpParts = ptSpVal ? String(ptSpVal).split("/") : [];
+            var ptX = parseInt(ptSpParts[0]), ptY = parseInt(ptSpParts[1]);
+            if (!isNaN(ptX) && !isNaN(ptY) && ptY > 0) {
+              var ptRects = '';
+              for (var ptI = 0; ptI < ptY; ptI++) {
+                ptRects += '<div style="flex:1;height:6px;border-radius:2px;background:' + (ptI < ptX ? 'var(--cisco-blue)' : '#ddd') + '"></div>';
+              }
+              cell += '<div style="display:flex;gap:2px;margin-top:5px;width:100%">' + ptRects + '</div>';
             }
           } else {
             cell = escHtml(val);
@@ -1867,9 +1880,9 @@ function renderDetails(data) {
           { label:"Stages Completed Before Opt-in", field:"_missedStages" },
           { label:"Days in Stage",           field:"Days in stage" },
           { label:"Days Since Opt-in",       field:"_daysSinceOptIn", isDaysSinceOptInExport: true },
+          { label:"Pending Tasks",           field:"Current stage pending tasks" },
           { label:"Stage Progress",          field:"Current Stage Progress" },
           { label:"Overall Progress",        field:"Overall Progress" },
-          { label:"Pending Tasks",           field:"Current stage pending tasks" },
           { label:"Booking Date",            field:"Booking Date",                isDate:true },
           { label:"Deal ID",                 field:"Deal ID" },
           { label:"Booking PO Number",       field:"Booking PO Number" },
