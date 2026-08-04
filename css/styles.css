@@ -198,6 +198,14 @@
 .ovw-portfolio-row td { background: #1B2A3B !important; color: #fff; font-weight: 700; cursor: pointer; user-select: none; }
 .ovw-offer-row td  { background: #e8f0f7 !important; font-weight: 600; cursor: pointer; user-select: none; }
 .ovw-uc-row td     { background: #f4f8fc; }
+
+/* First column must never clip — let it size to its content */
+#tab-overview .table-wrapper tbody td:first-child {
+  overflow: visible;
+  text-overflow: clip;
+  max-width: none;
+  width: auto;
+}
 .ovw-chevron { display: inline-block; transition: transform 0.15s ease; font-size: 0.75em; margin-right: 4px; }
 .ovw-drilldown-link { color: inherit; text-decoration: none; border-bottom: 1px dashed currentColor; cursor: pointer; }
 .ovw-drilldown-link:hover { opacity: 0.75; }

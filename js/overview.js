@@ -345,6 +345,12 @@ function renderOverview(data) {
       }).join(" ");
     }
 
+    var SUNSET_UCS = {
+      "CAMPUS NETWORK VISIBILITY": true,
+      "DNS SECURITY": true,
+      "PUBLIC CLOUD SECURITY POLICY AND ACCESS": true
+    };
+
     var tbody = "<tbody>";
     var portfolioOrder = ["Networking", "Security", "Cloud", "Cloud + AI Infrastructure", "Collaboration"];
     var domainKeys = Object.keys(groups).sort(function (a, b) {
@@ -375,8 +381,9 @@ function renderOverview(data) {
             groups[portfolio][offer][uc][tp].forEach(function (r) { ucAllRows.push(r); });
           });
           var ucCalc = calcRow(ucAllRows);
+          var sunsetMark = SUNSET_UCS[uc.toUpperCase()] ? '<span title="Sunset 26 July 2026"> *</span>' : '';
           tbody += '<tr class="ovw-uc-row" data-portfolio="' + pKey + '" data-offer="' + oKey + '"><td style="padding-left:2rem">' +
-            escHtml(uc) + '&nbsp;' + typeTags(typeKeys) + '</td>';
+            escHtml(uc) + sunsetMark + '&nbsp;' + typeTags([UC_TYPE_MAP[uc.toUpperCase()] || ""]) + '</td>';
           cols.forEach(function (c) { tbody += td(c, ucCalc[c]); });
           tbody += "</tr>";
         });
@@ -406,7 +413,8 @@ function renderOverview(data) {
 
     var thead = '<thead>' + groupRow + colHeaderRow + totalsRow + '</thead>';
 
-    var tableHtml = '<div class="table-wrapper"><table class="table table-bordered table-hover mb-0">' + thead + tbody + "</table></div>";
+    var tableHtml = '<div class="table-wrapper"><table class="table table-bordered table-hover mb-0">' + thead + tbody + "</table></div>" +
+      '<p class="text-muted mt-2 mb-0" style="font-size:0.78rem">* This use case has been sunset on 26 July 2026.</p>';
     document.getElementById("ovw-table-area").innerHTML = tableHtml;
 
     // Initialise Bootstrap tooltips on info icons

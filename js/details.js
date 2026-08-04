@@ -1273,7 +1273,7 @@ function renderDetails(data) {
       { label: "Estimated<br>Earned Incentives", field: "Estimated Earned Incentives", isCurrency: true, style: "min-width:90px;width:110px" },
       { label: "Deal WS-ID",                 field: "Deal WS-ID",                   style: "min-width:140px", isWsId: true },
       { label: "Status",                     field: "_status",                      isStatus: true },
-      { label: "Notes <span class='badge bg-warning text-dark' style='font-size:0.6rem;vertical-align:middle'>Beta</span>", field: "_annot", isAnnot: true, style: "min-width:90px" }
+      { label: "Notes", field: "_annot", isAnnot: true, style: "min-width:90px" }
     ];
 
     var sortableCols = {

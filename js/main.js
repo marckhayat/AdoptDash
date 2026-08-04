@@ -17,7 +17,7 @@ var APP_FILTER_STATE = { details: null, lifecycle: null, cpiAdopt: null, custome
 var APP_IS_DISTI = false;
 var APP_MULTI_SESSIONS = null; // { sessions: [...], fileMeta: {...} }
 var APP_EXCL_ACTIVE = false;   // when true, excluded deals are removed from overview/pvi/insights calculations
-var APP_VERSION = "v6.12";
+var APP_VERSION = "v6.13";
 // Use the browser's preferred language for date formatting (respects user's browser locale setting)
 var APP_LOCALE = navigator.language || undefined;
 // Holds a FileSystemFileHandle from showOpenFilePicker() to be persisted after load
