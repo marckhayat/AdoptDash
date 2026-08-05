@@ -1956,9 +1956,9 @@ function renderDetails(data) {
             if (c.field === "Earned?") return v === true ? "Yes" : "No";
             if (c.isLocked) {
               var _lockedNorm = function(x) { return x === null || x === undefined ? "" : String(x).replace(/\u00A0/g," ").trim().toUpperCase(); };
-              if (_lockedNorm(r["Adopt Rebate Opt-In Status"]) === "OPTED IN" && r["Earned?"] === true) return "Cannot be opted-out, has already earned";
-              if (_exportLockedKeys.has(String(r["CRPartyID-Offer"] || ""))) return "Cannot be opted-in, another UC has earned already";
-              return "";
+              if (_lockedNorm(r["Adopt Rebate Opt-In Status"]) === "OPTED IN" && r["Earned?"] === true) return "Yes";
+              if (_exportLockedKeys.has(String(r["CRPartyID-Offer"] || ""))) return "Yes";
+              return "No";
             }
             if (c.isAnnotTags) {
               var _wsIdEx = String(r["Deal WS-ID"] || "");
