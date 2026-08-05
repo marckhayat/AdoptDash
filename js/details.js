@@ -1442,7 +1442,7 @@ function renderDetails(data) {
             if (norm(r["Adopt Rebate Opt-In Status"]) === "OPTED IN" && r["Earned?"] === true)
               icons.push('<i class="bi bi-lock-fill" style="color:#6c757d" title="Cannot be opted-out, has already earned"></i>');
             else if (lockedOfferKeys.has(String(r["CRPartyID-Offer"] || "")))
-              icons.push('<i class="bi bi-lock-fill" style="color:#6c757d" title="Cannot be opted-in, another UC has earned already"></i>');
+              icons.push('<i class="bi bi-lock-fill" style="color:#6c757d" title="Cannot be opted-in, another UC has already earned"></i>');
             cell = '<span style="white-space:nowrap">' + icons.join(" ") + '</span>';
           } else if (c.isAnnot) {
             var _wsId2    = String(r["Deal WS-ID"] || "");
