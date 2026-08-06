@@ -1226,6 +1226,15 @@ function renderDetails(data) {
     var today = new Date();
     var in90  = new Date(today.getTime() + 90 * 86400000);
 
+    // Build set of CRPartyID-Offer keys that have at least one locked row (opted-in + earned)
+    var lockedOfferKeys = new Set();
+    data.forEach(function(r) {
+      var _n = function(x) { return x === null || x === undefined ? "" : String(x).replace(/\u00A0/g," ").trim().toUpperCase(); };
+      if (_n(r["Adopt Rebate Opt-In Status"]) === "OPTED IN" && r["Earned?"] === true) {
+        lockedOfferKeys.add(String(r["CRPartyID-Offer"] || ""));
+      }
+    });
+
     var start = (currentPage - 1) * PAGE_SIZE;
     var pageRows = filteredData.slice(start, start + PAGE_SIZE);
     var totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
@@ -1430,6 +1439,10 @@ function renderDetails(data) {
             if      (stg2 === "ELIGIBLE") icons.push('<i class="bi bi-check-circle-fill" style="color:#107C10" title="Eligible"></i>');
             else if (stg2 === "EXPIRED")  icons.push('<i class="bi bi-clock" style="color:#888" title="Expired"></i>');
             else if (r["Earned?"] !== true) icons.push('<i class="bi bi-x-circle-fill" style="color:#D13438" title="Not Eligible"></i>');
+            if (norm(r["Adopt Rebate Opt-In Status"]) === "OPTED IN" && r["Earned?"] === true)
+              icons.push('<i class="bi bi-lock-fill" style="color:#6c757d" title="Cannot be opted-out, has already earned"></i>');
+            else if (lockedOfferKeys.has(String(r["CRPartyID-Offer"] || "")))
+              icons.push('<i class="bi bi-lock-fill" style="color:#6c757d" title="Cannot be opted-in, another UC has already earned"></i>');
             cell = '<span style="white-space:nowrap">' + icons.join(" ") + '</span>';
           } else if (c.isAnnot) {
             var _wsId2    = String(r["Deal WS-ID"] || "");
@@ -1850,6 +1863,15 @@ function renderDetails(data) {
         // Build sheet rows array
         var sheetData = [];
 
+        // Build set of locked CRPartyID-Offer keys for export
+        var _exportLockedKeys = new Set();
+        data.forEach(function(r) {
+          var _n = function(x) { return x === null || x === undefined ? "" : String(x).replace(/\u00A0/g," ").trim().toUpperCase(); };
+          if (_n(r["Adopt Rebate Opt-In Status"]) === "OPTED IN" && r["Earned?"] === true) {
+            _exportLockedKeys.add(String(r["CRPartyID-Offer"] || ""));
+          }
+        });
+
         // Summary block (rows 0-2)
         sheetData.push(["Customers", s.customers,   "", "Total Missed",           "$" + Math.round(s.missed).toLocaleString()]);
         sheetData.push(["Use Cases", s.useCases,     "", "Total Potential",        "$" + Math.round(s.potential).toLocaleString()]);
@@ -1901,6 +1923,7 @@ function renderDetails(data) {
           { label:"Opt-In Status",           field:"Adopt Rebate Opt-In Status" },
           { label:"Stage",                   field:"Stage" },
           { label:"Earned?",                 field:"Earned?" },
+          { label:"Locked",                  field:"_locked",       isLocked: true },
           { label:"Tags",                    field:"_annotTags",    isAnnotTags: true },
           { label:"Comment",                 field:"_annotComment", isAnnotComment: true },
           { label:"Excluded",                field:"_annotExcl",    isAnnotExcl: true }
@@ -1931,6 +1954,12 @@ function renderDetails(data) {
               return "";
             }
             if (c.field === "Earned?") return v === true ? "Yes" : "No";
+            if (c.isLocked) {
+              var _lockedNorm = function(x) { return x === null || x === undefined ? "" : String(x).replace(/\u00A0/g," ").trim().toUpperCase(); };
+              if (_lockedNorm(r["Adopt Rebate Opt-In Status"]) === "OPTED IN" && r["Earned?"] === true) return "Yes";
+              if (_exportLockedKeys.has(String(r["CRPartyID-Offer"] || ""))) return "Yes";
+              return "No";
+            }
             if (c.isAnnotTags) {
               var _wsIdEx = String(r["Deal WS-ID"] || "");
               var _annotEx = annotationsCache[_wsIdEx];
