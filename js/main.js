@@ -570,6 +570,11 @@ function finishLoad(filename, rowCount, headerAutoDetected, idbType, loadedAt, f
   var sb = document.getElementById("status-bar");
   sb.classList.remove("d-none");
   sb.classList.add("d-flex");
+  document.getElementById("status-filename").textContent = filename;
+  document.getElementById("status-rows").textContent =
+    rowCount.toLocaleString() + " rows" +
+    (headerAutoDetected ? " · header auto-detected" : "");
+  document.getElementById("status-date").textContent = "";
 
   // Populate BE GEO ID global filter dropdown + partner/file date in tab bar slot
   APP_GEO_FILTER = "";
