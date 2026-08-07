@@ -215,7 +215,7 @@ function renderCPIAdopt(data) {
   var _nowFc = window.getFiscalMonth(_now);
   var _currentFY = _nowFc ? parseInt("20" + _nowFc.fy.slice(2), 10)
                            : (_now.getMonth() >= 7 ? _now.getFullYear() + 1 : _now.getFullYear());
-  var _selectedFY = fyList.indexOf(_currentFY) !== -1 ? _currentFY : (fyList[0] || _currentFY);
+  var _selectedFY = fyList.indexOf(_currentFY) !== -1 ? _currentFY : (fyList[fyList.length - 1] || _currentFY);
 
   // Build FY toggle buttons
   var fyToggleEl = document.getElementById("cpi-fy-toggle");
