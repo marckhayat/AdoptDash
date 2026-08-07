@@ -231,10 +231,9 @@ function renderTesting(data) {
   html += '</div>'; // close outer div.p-3
   el.innerHTML = html;
 
-  // Always returns data respecting current APP_EXCL_ACTIVE state
+  // Always returns data respecting current APP_GEO_FILTER and APP_EXCL_ACTIVE state
   function getEffectiveData() {
-    var base = (window.APP_DATA && window.APP_DATA.length) ? window.APP_DATA : data;
-    return (window.APP_EXCL_ACTIVE && window.getActiveData) ? window.getActiveData() : base;
+    return (window.getActiveData) ? window.getActiveData() : data;
   }
 
   // ── Exclude toggle button (shared across all subtabs) ─────────────────────

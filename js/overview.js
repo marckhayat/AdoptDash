@@ -116,7 +116,7 @@ function renderOverview(data) {
   }
 
   // Action buttons bar (export, notifications, etc. are appended via DOM)
-  html += '<div class="d-flex flex-wrap gap-4 align-items-center mb-3 px-1 py-2 border-bottom"></div>';
+  html += '<div class="d-flex gap-2 align-items-center justify-content-end mb-1" id="ovw-btn-bar"></div>';
 
   html += '<div id="ovw-table-area"></div>';
   html += '<p class="text-muted small fst-italic mt-2" style="font-size:0.78rem">' +
@@ -128,7 +128,7 @@ function renderOverview(data) {
   el.innerHTML = html;
 
   // Add export button to the header bar
-  var headerBar = el.querySelector(".border-bottom");
+  var headerBar = el.querySelector("#ovw-btn-bar");
   if (headerBar) {
     // Exclude-toggle button — count from full APP_DATA so button persists when filter is active
     var _allWsIds = new Set((window.APP_DATA || data).map(function(r) { return String(r["Deal WS-ID"] || ""); }));

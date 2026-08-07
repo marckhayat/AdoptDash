@@ -6,6 +6,14 @@ function renderPVI(data) {
   var el = document.getElementById("tab-pvi");
   if (!el) return;
 
+  // Require a single BE GEO ID to be selected when multiple IDs are present
+  var allGeoIds = [];
+  if (window.APP_DATA) window.APP_DATA.forEach(function(r) { var v = String(r["BE GEO ID"] || "").trim(); if (v && allGeoIds.indexOf(v) === -1) allGeoIds.push(v); });
+  if (!window.APP_GEO_FILTER && allGeoIds.length > 1) {
+    el.innerHTML = '<div class="text-danger p-3 text-start blink">Select a BE GEO ID from the top bar to view PVI data <i class="bi bi-arrow-up ms-1"></i></div>';
+    return;
+  }
+
   var PORTFOLIOS = ["Networking", "Security", "Cloud + AI Infrastructure"];
 
   function norm(x) {

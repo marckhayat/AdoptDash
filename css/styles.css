@@ -2,6 +2,15 @@
    Cisco Adoption Dashboard — Styles
    ============================================================ */
 
+@keyframes blink-text {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+.blink {
+  animation: blink-text 1.2s step-start infinite;
+}
+
 :root {
   --cisco-blue:  #00BCF2;
   --cisco-dark:  #1B2A3B;

@@ -243,6 +243,7 @@ function transformData(rawRows) {
     else if (cs === "Completed") startDate = toDate(r["Stage Completion Date(Adopt)"]);
 
     if (startDate !== null) {
+      startDate.setHours(0, 0, 0, 0); // normalize to local midnight, same as today
       r["Days in stage"] = Math.floor((today.getTime() - startDate.getTime()) / 86400000);
     } else {
       r["Days in stage"] = null;
