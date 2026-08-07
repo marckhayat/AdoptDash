@@ -667,6 +667,8 @@ function finishLoad(filename, rowCount, headerAutoDetected, idbType, loadedAt, f
         }
         var activeTab = document.querySelector(".nav-link.active[data-bs-target]");
         if (activeTab) renderActiveTab(activeTab.dataset.bsTarget);
+        // Refresh notifications to reflect the new GEO filter
+        if (window.showDataNotifications) showDataNotifications(getActiveData());
       });
       sel.addEventListener("blur", restoreShortLabels);
 
@@ -700,7 +702,7 @@ function finishLoad(filename, rowCount, headerAutoDetected, idbType, loadedAt, f
     // Fresh load or refresh — clear any stale dismissed state for this session
     try { localStorage.removeItem(_notifStorageKey(window._currentSessionKey)); } catch(e) {}
   }
-  showDataNotifications(APP_DATA);
+  showDataNotifications(getActiveData());
 }
 
 function restoreUploadSection(cachedEntries) {
@@ -1148,7 +1150,7 @@ function restoreUploadSection(cachedEntries) {
             if (entry && entry.data) {
               APP_DATA = entry.data;
               window._dismissedNotifs = {};
-              showDataNotifications(APP_DATA);
+              showDataNotifications(getActiveData());
             }
           });
         }

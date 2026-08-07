@@ -177,7 +177,7 @@ function renderOverview(data) {
     notifBtn.addEventListener("click", function() {
       window._dismissedNotifs = {};
       try { localStorage.removeItem(window._notifStorageKey && window._notifStorageKey(window._currentSessionKey)); } catch(e) {}
-      if (window.showDataNotifications) window.showDataNotifications(data);
+      if (window.showDataNotifications) window.showDataNotifications(window.getActiveData ? window.getActiveData() : data);
     });
     headerBar.appendChild(notifBtn);
   }
