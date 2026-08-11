@@ -135,7 +135,7 @@ function renderCPIAdopt(data) {
   html += '<button type="button" class="btn btn-outline-primary active" data-ucmode="optins"># Opt-ins</button>';
   html += '<button type="button" class="btn btn-outline-primary" data-ucmode="earned">Est. Earned</button>';
   html += '</div></div></div>';
-  html += '<div class="card-body p-3" style="min-height:400px;height:400px"><canvas id="cpi-chart8"></canvas></div>';
+  html += '<div class="card-body p-3" id="cpi-chart8-container"><canvas id="cpi-chart8"></canvas></div>';
   html += '</div>';
 
   el.innerHTML = html;
@@ -1030,6 +1030,8 @@ function renderCPIAdopt(data) {
     }
 
     if (_cpiChart8) { _cpiChart8.destroy(); _cpiChart8 = null; }
+    var container8 = document.getElementById("cpi-chart8-container");
+    if (container8) { container8.style.height = Math.max(300, ucList.length * 32 + 60) + "px"; }
     var ctx8 = document.getElementById("cpi-chart8").getContext("2d");
     _cpiChart8 = new Chart(ctx8, {
       type: "bar",
