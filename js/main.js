@@ -18,7 +18,7 @@ var APP_IS_DISTI = false;
 var APP_MULTI_SESSIONS = null; // { sessions: [...], fileMeta: {...} }
 var APP_EXCL_ACTIVE = false;   // when true, excluded deals are removed from overview/pvi/insights calculations
 var APP_GEO_FILTER = "";       // BE GEO ID filter — applies to all tabs
-var APP_VERSION = "v6.15.1";
+var APP_VERSION = "v6.15.2";
 // Use the browser's preferred language for date formatting (respects user's browser locale setting)
 var APP_LOCALE = navigator.language || undefined;
 // Holds a FileSystemFileHandle from showOpenFilePicker() to be persisted after load

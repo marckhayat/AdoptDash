@@ -993,15 +993,11 @@ function renderCPIAdopt(data) {
       }
     });
 
-    // Sort UCs by portfolio order, then by value descending within portfolio
-    var PF_ORDER = ["Networking", "Security", "Cloud + AI Infrastructure", "Collaboration"];
+    // Sort UCs by total value descending (highest at top of chart)
     var ucList = Object.keys(ucPfMap).sort(function (a, b) {
-      var pa = PF_ORDER.indexOf(Object.keys(ucPfMap[a])[0]); if (pa === -1) pa = 999;
-      var pb = PF_ORDER.indexOf(Object.keys(ucPfMap[b])[0]); if (pb === -1) pb = 999;
-      if (pa !== pb) return pa - pb;
       var va = Object.values(ucPfMap[a]).reduce(function (s, v) { return s + v; }, 0);
       var vb = Object.values(ucPfMap[b]).reduce(function (s, v) { return s + v; }, 0);
-      return vb - va;
+      return vb - va; // descending so Chart.js renders highest at top
     });
 
     var pfList = portfolioFilter ? [portfolioFilter] : portfolios;
