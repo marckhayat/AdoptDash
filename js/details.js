@@ -23,7 +23,15 @@ function renderDetails(data) {
 
   function fmtDate(v) {
     if (!v) return "";
-    var d = (v instanceof Date) ? v : (typeof v === "number" ? new Date(Math.round((v-25569)*86400*1000)) : new Date(v));
+    var d;
+    if (v instanceof Date) {
+      d = v;
+    } else if (typeof v === "number") {
+      d = new Date(Math.round((v - 25569) * 86400 * 1000));
+    } else {
+      var iso = String(v).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      d = iso ? new Date(parseInt(iso[1],10), parseInt(iso[2],10)-1, parseInt(iso[3],10)) : new Date(v);
+    }
     if (isNaN(d.getTime())) return String(v);
     return d.toLocaleDateString(window.APP_LOCALE);
   }

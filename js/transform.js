@@ -66,6 +66,9 @@ function transformData(rawRows) {
       return isNaN(d.getTime()) ? null : d;
     }
     if (typeof x === "string" && x.trim() !== "") {
+      // Parse date-only strings (YYYY-MM-DD) as local midnight to avoid UTC offset shifting the date
+      var iso = x.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (iso) return new Date(parseInt(iso[1],10), parseInt(iso[2],10)-1, parseInt(iso[3],10));
       var d2 = new Date(x);
       return isNaN(d2.getTime()) ? null : d2;
     }

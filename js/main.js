@@ -18,7 +18,7 @@ var APP_IS_DISTI = false;
 var APP_MULTI_SESSIONS = null; // { sessions: [...], fileMeta: {...} }
 var APP_EXCL_ACTIVE = false;   // when true, excluded deals are removed from overview/pvi/insights calculations
 var APP_GEO_FILTER = "";       // BE GEO ID filter — applies to all tabs
-var APP_VERSION = "v6.15.2";
+var APP_VERSION = "v6.15.3";
 // Use the browser's preferred language for date formatting (respects user's browser locale setting)
 var APP_LOCALE = navigator.language || undefined;
 // Holds a FileSystemFileHandle from showOpenFilePicker() to be persisted after load
@@ -1815,6 +1815,8 @@ function showDataNotifications(data) {
       return isNaN(d.getTime()) ? null : d;
     }
     if (typeof x === "string" && x.trim()) {
+      var iso = x.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (iso) return new Date(parseInt(iso[1],10), parseInt(iso[2],10)-1, parseInt(iso[3],10));
       var d2 = new Date(x);
       return isNaN(d2.getTime()) ? null : d2;
     }
