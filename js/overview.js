@@ -351,6 +351,10 @@ function renderOverview(data) {
       "PUBLIC CLOUD SECURITY POLICY AND ACCESS": true
     };
 
+    var MOVED_UCS = {
+      "CLOUD MONITORING FOR CATALYST": true
+    };
+
     var tbody = "<tbody>";
     var portfolioOrder = ["Networking", "Security", "Cloud", "Cloud + AI Infrastructure", "Collaboration"];
     var domainKeys = Object.keys(groups).sort(function (a, b) {
@@ -382,8 +386,9 @@ function renderOverview(data) {
           });
           var ucCalc = calcRow(ucAllRows);
           var sunsetMark = SUNSET_UCS[uc.toUpperCase()] ? '<span title="Sunset 26 July 2026"> *</span>' : '';
+          var movedMark  = MOVED_UCS[uc.toUpperCase()]  ? '<span title="Effective August 24, 2026, moved from Catalyst Center to Meraki"> **</span>' : '';
           tbody += '<tr class="ovw-uc-row" data-portfolio="' + pKey + '" data-offer="' + oKey + '"><td style="padding-left:2rem">' +
-            escHtml(uc) + sunsetMark + '&nbsp;' + typeTags([UC_TYPE_MAP[uc.toUpperCase()] || ""]) + '</td>';
+            escHtml(uc) + sunsetMark + movedMark + '&nbsp;' + typeTags([UC_TYPE_MAP[uc.toUpperCase()] || ""]) + '</td>';
           cols.forEach(function (c) { tbody += td(c, ucCalc[c]); });
           tbody += "</tr>";
         });
@@ -414,7 +419,8 @@ function renderOverview(data) {
     var thead = '<thead>' + groupRow + colHeaderRow + totalsRow + '</thead>';
 
     var tableHtml = '<div class="table-wrapper"><table class="table table-bordered table-hover mb-0">' + thead + tbody + "</table></div>" +
-      '<p class="text-muted mt-2 mb-0" style="font-size:0.78rem">* This use case has been sunset on 26 July 2026.</p>';
+      '<p class="text-muted mt-2 mb-0" style="font-size:0.78rem">* This use case has been sunset on 26 July 2026.</p>' +
+      '<p class="text-muted mt-1 mb-0" style="font-size:0.78rem">** Effective August 24, 2026, the Cloud Monitoring for Catalyst Use Case moved from the Catalyst Center offer, to the Meraki offer.</p>';
     document.getElementById("ovw-table-area").innerHTML = tableHtml;
 
     // Initialise Bootstrap tooltips on info icons
