@@ -93,7 +93,7 @@ function renderCPIAdopt(data) {
   // ── Monthly charts group with shared FY toggle
   html += '<div class="card shadow-sm mb-2" id="cpi-row-2">';
   html += '<div class="card-header fw-semibold d-flex align-items-center justify-content-between flex-wrap gap-2">';
-  html += '<span>Monthly Trends <small class="fw-normal">for Opted-in UCs</small></span>';
+  html += '<span>Monthly Trends <small class="fw-normal">for Opted-in UCs</small> <small class="text-muted fw-normal fst-italic">(fiscal months)</small></span>';
   html += '<div class="d-flex align-items-center gap-2">';
   html += '<div class="btn-group btn-group-sm" id="cpi-fy-toggle" role="group"></div>';
   html += '<div class="form-check form-switch mb-0 ms-2"><input class="form-check-input" type="checkbox" id="cpi-log-toggle"><label class="form-check-label small" for="cpi-log-toggle">Log scale</label></div>';

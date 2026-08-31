@@ -112,7 +112,8 @@ var ANNOTATIONS = (function () {
     return s;
   }
 
-  function csvParseLine(line) {
+  function csvParseLine(line, delim) {
+    var sep = delim || ",";
     var fields = [];
     var cur = "", inQ = false;
     for (var i = 0; i < line.length; i++) {
@@ -123,12 +124,18 @@ var ANNOTATIONS = (function () {
         else cur += ch;
       } else {
         if (ch === '"') inQ = true;
-        else if (ch === ",") { fields.push(cur); cur = ""; }
+        else if (ch === sep) { fields.push(cur); cur = ""; }
         else cur += ch;
       }
     }
     fields.push(cur);
     return fields;
+  }
+
+  function detectDelimiter(headerLine) {
+    var semicolons = (headerLine.match(/;/g) || []).length;
+    var commas     = (headerLine.match(/,/g) || []).length;
+    return semicolons > commas ? ";" : ",";
   }
 
   // ── Export all annotations as a CSV file download ────────────────────────
@@ -165,7 +172,8 @@ var ANNOTATIONS = (function () {
           var raw   = e.target.result.replace(/^\uFEFF/, ""); // strip UTF-8 BOM if present
           var lines = raw.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
           if (lines.length < 2) throw new Error("File appears empty");
-          var header   = csvParseLine(lines[0]).map(function (h) { return h.trim().toLowerCase(); });
+          var delim    = detectDelimiter(lines[0]);
+          var header   = csvParseLine(lines[0], delim).map(function (h) { return h.trim().toLowerCase(); });
           var iWsId    = header.indexOf("ws deal id");
           var iTags    = header.indexOf("tags");
           var iComment = header.indexOf("comment");
@@ -175,7 +183,7 @@ var ANNOTATIONS = (function () {
           for (var i = 1; i < lines.length; i++) {
             var line = lines[i].trim();
             if (!line) continue;
-            var fields  = csvParseLine(line);
+            var fields  = csvParseLine(line, delim);
             var wsId    = (fields[iWsId]    || "").trim();
             var tags    = iTags    !== -1 ? (fields[iTags]    || "").trim() : "";
             var comment = iComment !== -1 ? (fields[iComment] || "").trim() : "";
