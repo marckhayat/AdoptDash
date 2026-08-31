@@ -139,10 +139,10 @@ var ANNOTATIONS = (function () {
   }
 
   // ── Export all annotations as a CSV file download ────────────────────────
-  // Columns: WS Deal ID, Excluded, Tags (pipe-separated), Comment
+  // Columns: Deal WS-ID, Excluded, Tags (pipe-separated), Comment
   function exportCSV() {
     return IDB.loadAllAnnotations().then(function (rows) {
-      var lines = ["WS Deal ID,Excluded,Tags,Comment"];
+      var lines = ["Deal WS-ID,Excluded,Tags,Comment"];
       rows.forEach(function (r) {
         lines.push([
           csvEscape(r.wsId),
@@ -163,7 +163,7 @@ var ANNOTATIONS = (function () {
   }
 
   // ── Import annotations from CSV (merge — existing wsIds overwritten) ──────
-  // Columns (flexible order): WS Deal ID, Excluded, Tags, Comment
+  // Columns (flexible order): Deal WS-ID, Excluded, Tags, Comment
   function importCSV(file) {
     return new Promise(function (resolve, reject) {
       var reader = new FileReader();
@@ -174,11 +174,12 @@ var ANNOTATIONS = (function () {
           if (lines.length < 2) throw new Error("File appears empty");
           var delim    = detectDelimiter(lines[0]);
           var header   = csvParseLine(lines[0], delim).map(function (h) { return h.trim().toLowerCase(); });
-          var iWsId    = header.indexOf("ws deal id");
+          var iWsId    = header.indexOf("deal ws-id");
+          if (iWsId === -1) iWsId = header.indexOf("ws deal id"); // backward-compat
           var iTags    = header.indexOf("tags");
           var iComment = header.indexOf("comment");
           var iExcl    = header.indexOf("excluded");
-          if (iWsId === -1) throw new Error("Missing 'WS Deal ID' column");
+          if (iWsId === -1) throw new Error("Missing 'Deal WS-ID' column");
           var saves = [], count = 0;
           for (var i = 1; i < lines.length; i++) {
             var line = lines[i].trim();

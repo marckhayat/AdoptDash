@@ -1932,9 +1932,9 @@ function renderDetails(data) {
           { label:"Stage",                   field:"Stage" },
           { label:"Earned?",                 field:"Earned?" },
           { label:"Locked",                  field:"_locked",       isLocked: true },
+          { label:"Excluded",                field:"_annotExcl",    isAnnotExcl: true },
           { label:"Tags",                    field:"_annotTags",    isAnnotTags: true },
-          { label:"Comment",                 field:"_annotComment", isAnnotComment: true },
-          { label:"Excluded",                field:"_annotExcl",    isAnnotExcl: true }
+          { label:"Comment",                 field:"_annotComment", isAnnotComment: true }
         ];
 
         var headerRow = colDefs.map(function(c){ return c.label; });
