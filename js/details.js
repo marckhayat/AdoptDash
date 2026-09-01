@@ -802,14 +802,17 @@ function renderDetails(data) {
     updateStageSliderDisplay();
   }
 
-  // Load annotations from IDB, populate tag filter UI, then render
+  // Render immediately so the table is visible right away, even if the IDB
+  // save for a large dataset is still running and delays the annotations read.
+  applyFiltersAndRender();
+  // Then reload annotations in the background and re-render once they arrive
+  // so tag filters and exclusion state are accurate.
   ANNOTATIONS.load().then(function (cache) {
     annotationsCache = cache;
     rebuildTagFilterUI();
     applyFiltersAndRender();
   }).catch(function (err) {
-    console.warn("[AdoptDash] ANNOTATIONS.load() failed in Details, rendering anyway:", err);
-    applyFiltersAndRender();
+    console.warn("[AdoptDash] ANNOTATIONS.load() failed in Details:", err);
   });
 
   function _restoreDetailsState(st) {
