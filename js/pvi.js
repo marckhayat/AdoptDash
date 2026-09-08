@@ -110,6 +110,7 @@ function renderPVI(data) {
   html += '<li>Only considers eligible UCs that have a booking date within the past 18 fiscal months.</li>';
   html += '<li>1 UC per offer is selected. Priority is given to the opted-in UC. If no UC is opted-in, the UC with the highest incentive amount is selected.</li>';
   html += '<li>A UC that completes the Adopt phase will become Not Eligible if it is not opted-in, and will not be included in PVI calculations.</li>';
+  html += '<li>The PVI Engagement score for Collaboration doesn\'t rely on use-case completion, which is why it\'s excluded from this view.</li>';
   html += '</ul>';
   html += '<a href="https://ebooks.cisco.com/story/360-partner-program-partner-value-index-cisco-partner-incentive-metrics-guide/page/1" target="_blank" rel="noopener" class="small"><i class="bi bi-box-arrow-up-right me-1"></i>PVI Metrics Guide</a>';
   html += '</div>';
