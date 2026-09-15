@@ -138,10 +138,21 @@ var ANNOTATIONS = (function () {
     return semicolons > commas ? ";" : ",";
   }
 
-  // ── Export all annotations as a CSV file download ────────────────────────
+  // ── Export annotations as a CSV file download ─────────────────────────────
   // Columns: Deal WS-ID, Excluded, Tags (pipe-separated), Comment
-  function exportCSV() {
+  // wsIdFilter (optional): array/Set of Deal WS-IDs to restrict the export to
+  // (e.g. only the deals currently visible/filtered on screen). When omitted,
+  // every saved annotation is exported.
+  function exportCSV(wsIdFilter) {
+    var filterSet = null;
+    if (wsIdFilter) {
+      filterSet = {};
+      wsIdFilter.forEach(function (id) { filterSet[String(id)] = true; });
+    }
     return IDB.loadAllAnnotations().then(function (rows) {
+      if (filterSet) {
+        rows = rows.filter(function (r) { return !!filterSet[String(r.wsId)]; });
+      }
       var lines = ["Deal WS-ID,Excluded,Tags,Comment"];
       rows.forEach(function (r) {
         lines.push([

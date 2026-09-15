@@ -1211,7 +1211,8 @@ function renderDetails(data) {
       exportDetailsToXlsx(rows);
     });
     document.getElementById("det-annot-export-btn").addEventListener("click", function () {
-      ANNOTATIONS.exportJSON();
+      var wsIds = rows.map(function (r) { return r["Deal WS-ID"]; }).filter(Boolean);
+      ANNOTATIONS.exportJSON(wsIds);
     });
     document.getElementById("det-annot-import-input").addEventListener("change", function (e) {
       var file = e.target.files && e.target.files[0];
