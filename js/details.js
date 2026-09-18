@@ -1253,6 +1253,24 @@ function renderDetails(data) {
 
     var has2TPartner = data.some(function (r) { return r["2T Partner Name"] && String(r["2T Partner Name"]).trim() !== ""; });
 
+    // Source headers vary in spacing, casing and dash characters between exports.
+    var depSharedKey = null;
+    (function () {
+      var keys = {};
+      for (var i = 0; i < data.length && i < 50; i++) {
+        Object.keys(data[i] || {}).forEach(function (k) { keys[k] = true; });
+      }
+      Object.keys(keys).forEach(function (k) {
+        var n = String(k).replace(/[\u200B-\u200F\uFEFF]/g, "")
+                         .replace(/[\u00A0\u2002\u2003\u2009\u202F]/g, " ")
+                         .replace(/[\u2010-\u2015]/g, "-")
+                         .replace(/\s+/g, " ").trim().toLowerCase();
+        if (n.indexOf("deployment id") === 0 && /shared/.test(n) && !depSharedKey) {
+          depSharedKey = k;
+        }
+      });
+    })();
+
     var cols = [
       ...(has2TPartner ? [{ label: "2T Partner Name", field: "2T Partner Name" }] : []),
       { label: "CR Party Name",              field: "CR Party Name",                style: "min-width:180px" },
@@ -1481,6 +1499,10 @@ function renderDetails(data) {
               '<i class="bi bi-pencil-square"></i></button></div>';
           } else if (c.field === "Current stage") {
             cell = '<span class="stage-badge stage-' + escHtml(val) + '">' + escHtml(val) + '</span>';
+            var depSharedId = depSharedKey ? String(r[depSharedKey] || "").trim() : "";
+            if (depSharedId) {
+              cell += '<div style="font-size:0.72rem;color:#888;margin-top:2px;cursor:help" title="Deployment ID">' + escHtml(depSharedId) + '</div>';
+            }
           } else if (c.field === "Days in stage") {
             var days = val !== null && val !== undefined ? parseInt(val) : null;
             var dayColor = days === null ? "" : days > 180 ? "color:#D13438" : days > 90 ? "color:#FF8C00" : "color:#107C10";
