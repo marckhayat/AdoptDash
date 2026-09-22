@@ -18,7 +18,7 @@ var APP_IS_DISTI = false;
 var APP_MULTI_SESSIONS = null; // { sessions: [...], fileMeta: {...} }
 var APP_EXCL_ACTIVE = false;   // when true, excluded deals are removed from overview/pvi/insights calculations
 var APP_GEO_FILTER = "";       // BE GEO ID filter — applies to all tabs
-var APP_VERSION = "v6.16";
+var APP_VERSION = "v6.16.1";
 // Use the browser's preferred language for date formatting (respects user's browser locale setting)
 var APP_LOCALE = navigator.language || undefined;
 // Holds a FileSystemFileHandle from showOpenFilePicker() to be persisted after load
@@ -756,39 +756,20 @@ function restoreUploadSection(cachedEntries) {
     return html;
   }
 
-  // Split cached entries — exclude any IDs already covered by APP_MULTI_SESSIONS
-  var multiGeoIds = APP_MULTI_SESSIONS ? APP_MULTI_SESSIONS.sessions.map(function(s) { return "cpi-" + s.id; }) : [];
+  // Keep cached partner sessions available for quick resume.
   var wsEntries = [];
-  var cpiEntries = [];
   cachedEntries.forEach(function (e) {
     if (e.type.indexOf("ws-") === 0) wsEntries.push(e);
-    else if (e.type.indexOf("cpi-") === 0 && multiGeoIds.indexOf(e.type) === -1) cpiEntries.push(e);
   });
 
-  // ── Compute week options: Latest, then previous weeks down to 2026W23 ─────
-  var savedRegion = localStorage.getItem("lci-region") || "EMEA";
-  function getISOWeek(date) {
-    var d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-    var day = d.getUTCDay() || 7;
-    d.setUTCDate(d.getUTCDate() + 4 - day);
-    var yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return { year: d.getUTCFullYear(), week: Math.ceil((((d - yearStart) / 86400000) + 1) / 7) };
-  }
-  var now = getISOWeek(new Date());
-  var weekOptions = '<option value="">Latest</option>';
-  for (var w = now.week - 1; w >= 23; w--) {
-    var wLabel = now.year + "W" + (w < 10 ? "0" + w : w);
-    weekOptions += '<option value="' + wLabel + '">' + wLabel + '</option>';
-  }
-
-  // ── Build two-column layout ────────────────────────────────────────────────
+  // ── Build centered partner layout ─────────────────────────────────────────
   sec.innerHTML =
     '<div class="container-fluid py-4" style="max-width:1400px">' +
     '<p class="small mb-3 text-center"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="16" height="16" style="vertical-align:-2px;margin-right:4px"><path d="M50,0 A50,50 0 0,1 93.3,75 L50,50Z" fill="#EA4335"/><path d="M93.3,75 A50,50 0 0,1 6.7,75 L50,50Z" fill="#FBBC05"/><path d="M6.7,75 A50,50 0 0,1 50,0 L50,50Z" fill="#34A853"/><circle cx="50" cy="50" r="33" fill="white"/><circle cx="50" cy="50" r="20" fill="#4285F4"/></svg><strong>Chrome recommended for the best experience.</strong></p>' +
-    '<div class="row g-4">' +
+    '<div class="row g-4 justify-content-center">' +
 
-    // ── LEFT: Partner column ──────────────────────────────────────────────────
-    '<div class="col-12 col-lg-6">' +
+    // ── CENTER: Partner column ────────────────────────────────────────────────
+    '<div class="col-12 col-lg-8 col-xl-7">' +
 
     // Partner upload card
     '<div class="card shadow-sm border-primary mb-3">' +
@@ -851,79 +832,6 @@ function restoreUploadSection(cachedEntries) {
 
     '</div>' + // /left col
 
-    // ── RIGHT: Cisco-internal column ──────────────────────────────────────────
-    '<div class="col-12 col-lg-6">' +
-
-    // Cisco CPI card
-    '<div class="card shadow-sm border-warning mb-3">' +
-    '<div class="card-header bg-warning bg-opacity-10 fw-semibold" style="font-size:0.9rem"><i class="bi bi-lock-fill me-2 text-warning"></i>Cisco-internal</div>' +
-    '<div class="card-body p-4 text-center">' +
-    '<div class="row g-2 mb-3 align-items-end">' +
-    '<div class="col-auto"><label class="form-label small fw-semibold mb-1">Region</label>' +
-    '<select id="lci-region" class="form-select form-select-sm">' +
-    ['EMEA','AMER','APJC','DISTI'].map(function(r){ return '<option value="'+r+'"'+(r===savedRegion?' selected':'')+'>'+r+'</option>'; }).join('') +
-    '</select></div>'+
-    '<div class="col-auto"><label class="form-label small fw-semibold mb-1">Week</label>' +
-    '<select id="lci-week" class="form-select form-select-sm">' + weekOptions + '</select></div>' +
-    '<div class="col"><label class="form-label small fw-semibold mb-1">BE GEO ID(s) <span class="fw-normal text-muted" style="font-size:0.75rem">— Separate multiple IDs with comma or space.</span></label>' +
-    '<div id="lci-begeoid-wrap" class="form-control form-control-sm d-flex flex-wrap gap-1 align-items-center" style="height:auto;min-height:31px;cursor:text;padding:3px 8px">' +
-    '<input type="text" id="lci-begeoid" class="border-0 p-0 bg-transparent" style="outline:none;width:90px;min-width:60px;font-size:0.875rem" placeholder="e.g. 12345" />' +
-    '</div>' +
-    '</div>' +
-    '</div>' +
-    '<div id="lci-error" class="alert alert-danger py-2 px-3 small mb-3 d-none"></div>' +
-    '<div id="lci-session-picker" class="d-none"></div>' +
-    '<div id="lci-last-file-hint" class="d-none mb-2 text-start small">' +
-    '<i class="bi bi-file-earmark-check me-1 text-success"></i>' +
-    '<span id="lci-last-file-name" class="fw-semibold"></span>' +
-    ' &nbsp;<a href="#" id="lci-pick-different" class="text-muted">Use different file</a>' +
-    '</div>' +
-    '<div class="d-flex align-items-center gap-3 flex-wrap">' +
-    '<p class="text-muted small mb-0">Locate the <span id="lci-file-hint-text" class="fw-semibold fst-italic"></span> file in your OneDrive.</p>' +
-    '<button id="lci-load-btn" class="btn btn-warning px-4"><i class="bi bi-folder2-open me-2"></i>Load CPI File…</button>' +
-    '<input type="file" id="lci-file-input" accept=".csv" class="d-none" />' +
-    '</div>'+
-    '</div></div>' +
-
-    // Previous CPI sessions (cached + any pending multi-session results)
-    (function() {
-      var multiCards = "";
-      if (APP_MULTI_SESSIONS && APP_MULTI_SESSIONS.sessions.length > 0) {
-        multiCards = APP_MULTI_SESSIONS.sessions.map(function(sess, i) {
-          var name = sess.partnerName ? '<div class="fw-semibold small">' + sess.partnerName + '</div>' : '';
-          // Use per-session IDB loadedAt if available, fall back to shared loadedAt
-          var idbEntry = cachedEntries.find(function(e) { return e.type === "cpi-" + sess.id; });
-          var loadedAt = (idbEntry && idbEntry.meta && idbEntry.meta.loadedAt) ? idbEntry.meta.loadedAt : (APP_MULTI_SESSIONS.loadedAt || null);
-          var dateStr = loadedAt ? (function(iso){ var d=new Date(iso); return isNaN(d)?'':(d.toLocaleDateString(APP_LOCALE)+' '+d.toLocaleTimeString(APP_LOCALE,{hour:'2-digit',minute:'2-digit'})); })(loadedAt) : '';
-          var hasHandle = !!(APP_MULTI_SESSIONS && APP_MULTI_SESSIONS.hasHandle);
-          return '<div class="col-6"><div class="card border-warning mb-0 p-2">' +
-            '<div class="d-flex justify-content-between align-items-start gap-2">' +
-            '<div style="min-width:0">' +
-            name +
-            '<div class="text-muted" style="font-size:0.72rem">BE GEO ID ' + sess.id + ' &middot; ' + sess.rows.length.toLocaleString() + ' rows</div>' +
-            '<div class="text-muted text-truncate" style="font-size:0.72rem">' + APP_MULTI_SESSIONS.fileMeta.name + (dateStr ? ' &middot; ' + dateStr : '') + '</div>' +
-            '</div>' +
-            '<div class="d-flex gap-1 flex-shrink-0">' +
-            '<button class="btn btn-sm btn-warning py-0 multi-pick-btn flex-shrink-0" data-geo-idx="' + i + '" title="Load"><i class="bi bi-play-fill"></i></button>' +
-            (hasHandle ? '<button class="btn btn-sm btn-outline-primary py-0 idb-refresh-btn flex-shrink-0" data-idbtype="cpi-' + sess.id + '" title="Refresh from file"><i class="bi bi-arrow-clockwise"></i></button>' : '') +
-            '<button class="btn btn-sm btn-outline-danger py-0 multi-del-btn flex-shrink-0" data-geo-idx="' + i + '" title="Delete"><i class="bi bi-trash"></i></button>' +
-            '</div>' +
-            '</div></div></div>';
-        }).join("");
-      }
-      var hasAny = cpiEntries.length > 0 || multiCards;
-      if (!hasAny) return '';
-      return '<div class="card shadow-sm border-warning">' +
-        '<div class="card-header bg-warning bg-opacity-10 fw-semibold d-flex justify-content-between align-items-center gap-2" style="font-size:0.85rem"><span><i class="bi bi-lightning-charge-fill me-2 text-warning"></i>Previous sessions</span>' +
-        (isChrome ? '<button id="cpi-refresh-all-btn" class="btn btn-sm btn-outline-primary py-0 flex-shrink-0" title="Refresh all previous sessions"><i class="bi bi-arrow-clockwise me-1"></i>Refresh all</button>' : '') +
-        '</div>' +
-        '<div class="card-body p-2" id="cpi-prev-sessions-body"><div class="row g-2">' +
-        multiCards +
-        cpiEntries.map(resumeCard).join("") +
-        '</div></div></div>';
-    })()+
-
-    '</div>' + // /right col
     '</div>' +
     // ── Clear all data button ─────────────────────────────────────────────
     '<div class="text-center mt-2 mb-1">' +
@@ -1165,6 +1073,7 @@ function restoreUploadSection(cachedEntries) {
     });
   });
 
+  if (document.getElementById("lci-region")) {
   var cpiRefreshAllBtn = document.getElementById("cpi-refresh-all-btn");
   if (cpiRefreshAllBtn) {
     cpiRefreshAllBtn.addEventListener("click", function () {
@@ -1362,6 +1271,7 @@ function restoreUploadSection(cachedEntries) {
     PENDING_FILE_HANDLE = null;
     processCpiFile(file, document.getElementById("lci-region").value, document.getElementById("lci-week").value, lciGeoIds.slice());
   });
+  }
 
   renderMultiPicker(); // show persistent session bar if APP_MULTI_SESSIONS is set
 
