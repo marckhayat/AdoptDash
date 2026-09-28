@@ -331,11 +331,37 @@ function renderDetails(data) {
       return total;
     }
 
+    function dedupeMissedWithEarned() {
+      var groups = new Map();
+      rows.forEach(function (r) {
+        var key = r["CRPartyID-Offer"] || "";
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(r);
+      });
+      var total = 0;
+      groups.forEach(function (group) {
+        var earnedRows = group.filter(function (r) {
+          return (parseFloat(r["Estimated Earned Incentives"]) || 0) > 0;
+        });
+        if (earnedRows.length) {
+          earnedRows.forEach(function (r) { total += parseFloat(r["Missed Incentives"]) || 0; });
+        } else {
+          var maxMissed = 0;
+          group.forEach(function (r) {
+            var missed = parseFloat(r["Missed Incentives"]) || 0;
+            if (missed > maxMissed) maxMissed = missed;
+          });
+          total += maxMissed;
+        }
+      });
+      return total;
+    }
+
     return {
       partners:  partners.size,
       customers: customers.size,
       useCases:  ucMap.size,
-      missed:    dedupeMax("Missed Incentives"),
+      missed:    dedupeMissedWithEarned(),
       potential: dedupeMax("Potential Incentives"),
       earned:    dedupeMax("Estimated Earned Incentives")
     };
@@ -1195,7 +1221,7 @@ function renderDetails(data) {
     if (has2TPartner) html += metricCard(s.partners, "2T Partners");
     html += metricCard(s.customers,          "Customers",             "A customer refers to a unique CR Party ID.");
     html += metricCard(s.useCases,           "Use Cases",             "Count of unique use cases per offer per CR Party ID.");
-    html += metricCard("$" + Math.round(s.missed).toLocaleString(),    "Total Missed",           "Total amount of missed incentives. The highest incentive per unique UC per offer per CR Party ID is counted.");
+    html += metricCard("$" + Math.round(s.missed).toLocaleString(),    "Total Missed",           "Total amount of missed incentives. Per unique offer + CR Party ID: if any deal has earned incentives, only deals that themselves earned contribute their own missed amount (all other siblings' missed is discarded); otherwise the highest missed among sibling deals is counted.");
     html += metricCard("$" + Math.round(s.potential).toLocaleString(), "Total Potential",        "Total amount of remaining incentives. The highest incentive per unique UC per offer per CR Party ID is counted.");
     html += metricCard("$" + Math.round(s.earned).toLocaleString(),    "Total Estimated Earned", "Estimated amount of earned incentives according to program rules. Payment process goes through further steps validated by the CPI team.");
     html += '<div class="d-flex flex-column align-items-end ms-auto gap-1">' +

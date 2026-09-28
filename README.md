@@ -23,7 +23,7 @@ The Adoption Dashboard helps Cisco partners:
 | Tab | Description |
 |-----|-------------|
 | **Overview** | Summary pivot by Portfolio → Offer → Use Case |
-| **Details** | Row-level deal view with inline definitions |
+| **Details** | Row-level deal view with inline definitions. Total Missed groups deals by CR Party ID and offer: when any deal earned incentives, it sums missed incentives only from deals that earned; otherwise it counts the highest missed amount in the group. |
 | **PVI** | Partner Value Index Engagement score calculator |
 | **Insights** | Analytics hub with four sub-tabs: |
 | &nbsp;&nbsp;↳ **CPI Adopt** | Incentive performance charts — earned, potential, missed, opt-in ratios |
