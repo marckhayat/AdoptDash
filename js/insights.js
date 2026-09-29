@@ -129,8 +129,8 @@ function renderTesting(data) {
 
   html += '<div class="d-flex flex-column"><label class="small text-muted mb-1" for="pareto-mode">View</label>';
   html += '<select id="pareto-mode" class="form-select form-select-sm" style="min-width:220px">';
-  html += '<option value="eligible">Eligible (1 per offer per CR)</option>';
-  html += '<option value="optedin" selected>Opted-in</option>';
+  html += '<option value="eligible" selected>Eligible (1 per offer per CR)</option>';
+  html += '<option value="optedin">Opted-in</option>';
   html += '</select></div>';
   html += '<div class="d-flex flex-column"><label class="small text-muted mb-1" for="pareto-portfolio">Portfolio</label>';
   html += '<select id="pareto-portfolio" class="form-select form-select-sm" style="min-width:180px"><option value="">All Portfolios</option>';

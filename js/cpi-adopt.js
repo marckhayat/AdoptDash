@@ -8,11 +8,12 @@ var _cpiChart2b = null;
 var _cpiChart3 = null;
 var _cpiChart4 = null;
 var _cpiChart5 = null;
-var _cpiChart6 = null;
-var _cpiChart7 = null;
+var _cpiChart6 = null; // reused for the combined Potential + Earned + Missed chart
+var _cpiChart7 = null; // deprecated (chart merged into _cpiChart6)
 var _cpiChart8 = null;
 var _cpiChart5Log = false;
-var _cpiChart8Mode = "optins"; // "optins" | "earned"
+var _cpiChart8Mode = "earned"; // "optins" | "earned"
+var _cpiEarnPotFY = "all"; // FY filter for the combined Potential/Earned/Missed chart ("all" | fiscal year number)
 
 function renderCPIAdopt(data) {
   var el = document.getElementById("tab-cpi-adopt");
@@ -71,21 +72,15 @@ function renderCPIAdopt(data) {
 
   html += '<div class="row g-4 mb-4" id="cpi-row-1">';
 
-  // ── Stat charts row: Eligible-only pie | Eligible+Expired pie | Earned by Portfolio
-  html += '<div class="col-12 col-lg-4">';
+  // ── Stat charts row: Incentives pie | Combined Potential + Earned by Portfolio
+  html += '<div class="col-12 col-lg-6">';
   html += '<div class="card shadow-sm h-100"><div class="card-header fw-semibold d-flex align-items-center justify-content-between flex-wrap gap-1"><span>Incentives <i class="bi bi-info-circle text-muted ms-1" style="font-size:0.75rem;cursor:default" data-bs-toggle="tooltip" data-bs-placement="top" title="Breakdown of incentives."></i></span><div class="btn-group btn-group-sm" id="cpi-incentive-mode"><button type="button" class="btn btn-outline-primary active" data-mode="eligible">Eligible</button><button type="button" class="btn btn-outline-primary" data-mode="eligible-expired">Eligible &amp; Expired</button></div></div><div class="card-body">';
-  html += '<div class="chart-container" style="min-height:220px;height:220px"><canvas id="cpi-chart2b"></canvas></div>';
-  html += '<div id="cpi-ratio-incentive" class="text-center mt-2"></div>';
+  html += '<div class="d-flex align-items-center gap-2"><div class="chart-container flex-grow-1" style="min-height:220px;height:220px;min-width:0"><canvas id="cpi-chart2b"></canvas></div><div class="flex-shrink-0" style="font-size:11px;width:150px;flex:0 0 150px"><div id="cpi-ratio-incentive" class="mb-2"></div><div id="cpi-chart2b-legend"></div></div></div>';
   html += '</div></div></div>';
 
-  html += '<div class="col-12 col-lg-4">';
-  html += '<div class="card shadow-sm h-100"><div class="card-header fw-semibold d-flex justify-content-between align-items-center"><span>Current Potential Incentives <i class="bi bi-info-circle text-muted ms-1" style="font-size:0.75rem;cursor:default" data-bs-toggle="tooltip" data-bs-placement="top" title="Remaining potential incentives for opted-in Eligible deals, per portfolio."></i></span><span id="cpi-chart7-total" class="fw-normal text-muted"></span></div><div class="card-body">';
-  html += '<div class="chart-container" style="min-height:220px;height:220px"><canvas id="cpi-chart7"></canvas></div>';
-  html += '</div></div></div>';
-
-  html += '<div class="col-12 col-lg-4">';
-  html += '<div class="card shadow-sm h-100"><div class="card-header fw-semibold d-flex justify-content-between align-items-center"><span>Total Estimated Earned Incentives <i class="bi bi-info-circle text-muted ms-1" style="font-size:0.75rem;cursor:default" data-bs-toggle="tooltip" data-bs-placement="top" title="Total estimated earned incentives per portfolio (all-time, not filtered by FY)."></i></span><span id="cpi-chart6-total" class="fw-normal text-muted"></span></div><div class="card-body">';
-  html += '<div class="chart-container" style="min-height:220px;height:220px"><canvas id="cpi-chart6"></canvas></div>';
+  html += '<div class="col-12 col-lg-6">';
+  html += '<div class="card shadow-sm h-100"><div class="card-header fw-semibold d-flex justify-content-between align-items-center flex-wrap gap-2"><div class="d-flex align-items-center gap-2"><span>Incentives by Portfolio <i class="bi bi-info-circle text-muted ms-1" style="font-size:0.75rem;cursor:default" data-bs-toggle="tooltip" data-bs-placement="top" title="Potential: remaining incentives for opted-in Eligible deals (expiry date). Earned: total estimated earned incentives (stage completion date). Missed: total missed incentives per portfolio (stage completion date). Not opted-in: Revised Maximum Incentive Amount for not-opted-in deals (expiry date)."></i></span><div class="btn-group btn-group-sm" id="cpi-earnpot-fy-toggle" role="group"></div></div><span id="cpi-chart-earnpot-total" class="fw-normal text-muted"></span></div><div class="card-body">';
+  html += '<div class="chart-container" style="min-height:220px;height:220px"><canvas id="cpi-chart-earnpot"></canvas></div>';
   html += '</div></div></div>';
 
   html += '</div>'; // stat charts row
@@ -132,8 +127,8 @@ function renderCPIAdopt(data) {
   html += '<div class="d-flex align-items-center gap-3">';
   html += '<span id="cpi-chart8-total" class="fw-normal text-muted"></span>';
   html += '<div class="btn-group btn-group-sm" id="cpi-uc-mode-toggle" role="group">';
-  html += '<button type="button" class="btn btn-outline-primary active" data-ucmode="optins"># Opt-ins</button>';
-  html += '<button type="button" class="btn btn-outline-primary" data-ucmode="earned">Est. Earned</button>';
+  html += '<button type="button" class="btn btn-outline-primary" data-ucmode="optins"># Opt-ins</button>';
+  html += '<button type="button" class="btn btn-outline-primary active" data-ucmode="earned">Est. Earned</button>';
   html += '</div></div></div>';
   html += '<div class="card-body p-3" id="cpi-chart8-container"><canvas id="cpi-chart8"></canvas></div>';
   html += '</div>';
@@ -210,6 +205,17 @@ function renderCPIAdopt(data) {
   });
   var fyList = Array.from(fyYears).sort(function (a, b) { return a - b; }); // ascending (oldest left, newest right)
 
+  // Extended FY list for the combined Potential/Earned/Missed chart: also includes fiscal years
+  // reached by Deal Incentive Expiry Date so users can filter Potential/Missed into future FYs.
+  var fyYearsEarnPot = new Set(fyYears);
+  data.forEach(function (r) {
+    var d = new Date(r["Deal Incentive Expiry Date"]);
+    if (isNaN(d.getTime())) return;
+    var fc = window.getFiscalMonth(d);
+    if (fc) fyYearsEarnPot.add(parseInt("20" + fc.fy.slice(2), 10));
+  });
+  var fyListEarnPot = Array.from(fyYearsEarnPot).sort(function (a, b) { return a - b; });
+
   // Determine current FY using the Cisco fiscal calendar
   var _now = new Date();
   var _nowFc = window.getFiscalMonth(_now);
@@ -236,6 +242,29 @@ function renderCPIAdopt(data) {
     if (window.APP_FILTER_STATE && window.APP_FILTER_STATE.cpiAdopt) window.APP_FILTER_STATE.cpiAdopt.selectedFY = _selectedFY;
     buildMonthlyCharts(document.getElementById("cpi-portfolio").value, document.getElementById("cpi-offer").value);
   });
+
+  // FY toggle for the combined Potential/Earned/Missed chart (independent of monthly-trends FY).
+  var earnPotFyToggleEl = document.getElementById("cpi-earnpot-fy-toggle");
+  if (earnPotFyToggleEl) {
+    ["all"].concat(fyListEarnPot).forEach(function (v) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "btn btn-outline-primary" + (String(v) === String(_cpiEarnPotFY) ? " active" : "");
+      btn.textContent = v === "all" ? "All time" : "FY" + String(v).slice(-2);
+      btn.dataset.fy = v;
+      earnPotFyToggleEl.appendChild(btn);
+    });
+    earnPotFyToggleEl.addEventListener("click", function (e) {
+      var btn = e.target.closest("button[data-fy]");
+      if (!btn) return;
+      _cpiEarnPotFY = btn.dataset.fy === "all" ? "all" : parseInt(btn.dataset.fy, 10);
+      earnPotFyToggleEl.querySelectorAll("button").forEach(function (b) {
+        b.classList.toggle("active", String(b.dataset.fy) === String(_cpiEarnPotFY));
+      });
+      if (window.APP_FILTER_STATE && window.APP_FILTER_STATE.cpiAdopt) window.APP_FILTER_STATE.cpiAdopt.earnPotFY = _cpiEarnPotFY;
+      buildEarnPotChart(document.getElementById("cpi-portfolio").value, document.getElementById("cpi-offer").value);
+    });
+  }
 
   // Portfolio change → refresh offer list
   document.getElementById("cpi-portfolio").addEventListener("change", function () {
@@ -283,6 +312,17 @@ function renderCPIAdopt(data) {
       _selectedFY = _cpiSaved.selectedFY;
       fyToggleEl.querySelectorAll("button").forEach(function(b){ b.classList.toggle("active", parseInt(b.dataset.fy,10) === _selectedFY); });
     }
+    if (_cpiSaved.earnPotFY !== undefined) {
+      var _savedEP = _cpiSaved.earnPotFY;
+      if (_savedEP === "all" || fyListEarnPot.indexOf(_savedEP) !== -1) {
+        _cpiEarnPotFY = _savedEP;
+        if (earnPotFyToggleEl) {
+          earnPotFyToggleEl.querySelectorAll("button").forEach(function (b) {
+            b.classList.toggle("active", String(b.dataset.fy) === String(_cpiEarnPotFY));
+          });
+        }
+      }
+    }
     if (_cpiSaved.logScale) {
       _cpiChart5Log = true;
       var _logEl = document.getElementById("cpi-log-toggle");
@@ -303,7 +343,7 @@ function renderCPIAdopt(data) {
   function buildCharts(portfolioFilter, offerFilter) {
     if (window.APP_FILTER_STATE) {
       var _prevIncentiveMode = window.APP_FILTER_STATE.cpiAdopt && window.APP_FILTER_STATE.cpiAdopt.incentiveMode;
-      window.APP_FILTER_STATE.cpiAdopt = { portfolio: portfolioFilter, offer: offerFilter, selectedFY: _selectedFY, logScale: _cpiChart5Log, incentiveMode: _prevIncentiveMode || "eligible", ucMode: _cpiChart8Mode };
+      window.APP_FILTER_STATE.cpiAdopt = { portfolio: portfolioFilter, offer: offerFilter, selectedFY: _selectedFY, logScale: _cpiChart5Log, incentiveMode: _prevIncentiveMode || "eligible", ucMode: _cpiChart8Mode, earnPotFY: _cpiEarnPotFY };
     }
     buildStatCharts(portfolioFilter, offerFilter);
     buildMonthlyCharts(portfolioFilter, offerFilter);
@@ -323,11 +363,9 @@ function renderCPIAdopt(data) {
     var eligTotalMax    = 0; // Revised Max for eligible deals
     var totalMax        = 0; // Revised Max for eligible+expired deals
     var eligEarned      = 0; // Estimated Earned for opted-in eligible
-    var eligMissed      = 0; // Missed for opted-in eligible
     var eligPotential   = 0; // Potential Incentives for opted-in eligible
     var eligNotOptedMax = 0; // Revised Max for not-opted-in eligible
     var allEarned       = 0; // Estimated Earned for opted-in eligible+expired
-    var allMissed       = 0; // Missed for opted-in eligible+expired
     var allPotential    = 0; // Potential Incentives for opted-in eligible+expired
     var allNotOptedMax  = 0; // Revised Max for not-opted-in eligible+expired
     var allExpired      = 0; // Revised Max - Earned for opted-in expired (no potential)
@@ -347,7 +385,6 @@ function renderCPIAdopt(data) {
         if (isOptedIn) {
           eligOptedMax  += maxIncentive;
           eligEarned    += parseFloat(r["Estimated Earned Incentives"]) || 0;
-          eligMissed    += parseFloat(r["Missed Incentives"]) || 0;
           eligPotential += parseFloat(r["Potential Incentives"]) || 0;
         } else {
           eligNotOptedMax += maxIncentive;
@@ -357,7 +394,6 @@ function renderCPIAdopt(data) {
         if (isOptedIn) {
           allOptedMax  += maxIncentive;
           allEarned    += parseFloat(r["Estimated Earned Incentives"]) || 0;
-          allMissed    += parseFloat(r["Missed Incentives"]) || 0;
           allPotential += parseFloat(r["Potential Incentives"]) || 0;
           if (isExpired) {
             allExpired += Math.max(0, maxIncentive - (parseFloat(r["Estimated Earned Incentives"]) || 0));
@@ -372,16 +408,16 @@ function renderCPIAdopt(data) {
     var _incentiveMode = (_cpiSaved && _cpiSaved.incentiveMode) ? _cpiSaved.incentiveMode : "eligible";
     var _incentiveDatasets = {
       "eligible": {
-        data:   [eligEarned, eligPotential, eligNotOptedMax, eligMissed],
-        labels: ["Earned", "Potential", "Not opted-in", "Missed"],
-        colors: ["#107C10", "#00BCF2", "#D0D0D0", "#D13438"],
+        data:   [eligEarned, eligPotential, eligNotOptedMax],
+        labels: ["Earned", "Potential", "Not opted-in"],
+        colors: ["#107C10", "#00BCF2", "#D0D0D0"],
         optedInSlices: 2,
         total: eligTotalMax, optedMax: eligOptedMax
       },
       "eligible-expired": {
-        data:   [allEarned, allPotential, allExpired, allNotOptedMax, allMissed],
-        labels: ["Earned", "Potential", "Expired", "Not opted-in", "Missed"],
-        colors: ["#107C10", "#00BCF2", "#FF8C00", "#D0D0D0", "#D13438"],
+        data:   [allEarned, allPotential, allExpired, allNotOptedMax],
+        labels: ["Earned", "Potential", "Expired", "Not opted-in"],
+        colors: ["#107C10", "#00BCF2", "#FF8C00", "#D0D0D0"],
         optedInSlices: 3,
         total: totalMax, optedMax: allOptedMax
       }
@@ -391,8 +427,30 @@ function renderCPIAdopt(data) {
       var ds = _incentiveDatasets[mode];
       var pct = ds.total > 0 ? Math.round(ds.optedMax / ds.total * 100) : 0;
       document.getElementById("cpi-ratio-incentive").innerHTML =
-        '<span style="font-size:1rem;font-weight:600;color:#00BCF2">' + pct + '% opted-in</span>' +
-        '<span class="text-muted small ms-2">(' + fmtCurrency(ds.optedMax) + ' / ' + fmtCurrency(ds.total) + ')</span>';
+        '<div style="font-size:14px;font-weight:600;color:#00BCF2;line-height:1.2">' + pct + '% opted-in</div>' +
+        '<div class="text-muted" style="font-size:11px">(' + fmtCurrency(ds.optedMax) + ' / ' + fmtCurrency(ds.total) + ')</div>';
+    }
+
+    // Side legend renderer: label + swatch + amount.
+    function renderIncentiveLegend(mode) {
+      var host = document.getElementById("cpi-chart2b-legend");
+      if (!host) return;
+      var ds = _incentiveDatasets[mode];
+      var rows = ds.labels.map(function (label, i) {
+        var color = ds.colors[i];
+        var swatch = '<span style="display:inline-block;width:12px;height:12px;background:' + color + ';margin-right:6px;vertical-align:middle;flex-shrink:0"></span>';
+        var v = parseFloat(ds.data[i]) || 0;
+        var fmt = Math.abs(v) >= 1000000 ? "$" + (v/1000000).toFixed(2) + "M"
+                : Math.abs(v) >= 1000    ? "$" + (v/1000).toFixed(1)  + "K"
+                : "$" + Math.round(v).toLocaleString();
+        return '<div class="d-flex align-items-center justify-content-between mb-1" style="gap:6px">' +
+                 '<span style="display:flex;align-items:center;min-width:0">' + swatch +
+                   '<span>' + label + '</span>' +
+                 '</span>' +
+                 '<span class="fw-semibold text-nowrap">' + fmt + '</span>' +
+               '</div>';
+      }).join("");
+      host.innerHTML = rows;
     }
 
     if (_cpiChart2b) { _cpiChart2b.destroy(); _cpiChart2b = null; }
@@ -464,9 +522,9 @@ function renderCPIAdopt(data) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        layout: { padding: { top: 10, right: 28, bottom: 0, left: 28 } },
+        layout: { padding: { top: 10, right: 12, bottom: 12, left: 12 } },
         plugins: {
-          legend: { position: "bottom", labels: { boxWidth: 12, font: { size: 11 } } },
+          legend: { display: false },
           tooltip: {
             callbacks: {
               label: function (ctx) {
@@ -484,6 +542,7 @@ function renderCPIAdopt(data) {
       plugins: [optedInArcPlugin]
     });
     renderIncentiveRatio(_incentiveMode);
+    renderIncentiveLegend(_incentiveMode);
 
     // Apply active button state for restored mode
     var incentiveModeEl = document.getElementById("cpi-incentive-mode");
@@ -503,10 +562,39 @@ function renderCPIAdopt(data) {
         _cpiChart2b.data.datasets[0].backgroundColor = ds.colors.slice();
         _cpiChart2b.update();
         renderIncentiveRatio(_incentiveMode);
+        renderIncentiveLegend(_incentiveMode);
       });
     }
 
-    // ── Chart 6: Total Earned by Portfolio (all-time, not FY-filtered)
+    buildEarnPotChart(portfolioFilter, offerFilter);
+  }  // end buildStatCharts
+
+  function buildEarnPotChart(portfolioFilter, offerFilter) {
+    var subset = data.filter(function (r) {
+      if (norm(r["Maximum Incentive Deal Flag"]) !== "YES") return false;
+      if (portfolioFilter && r["Deal CPI Portfolio"] !== portfolioFilter) return false;
+      if (offerFilter     && r["Track"] !== offerFilter)                   return false;
+      return true;
+    });
+
+    // ── Combined Potential + Earned + Missed by Portfolio (grouped horizontal bars)
+    // FY filter: Earned by stage completion date; Potential by Deal Incentive Expiry Date.
+    var _fyRange = null;
+    if (_cpiEarnPotFY !== "all") {
+      var _fyKey = "FY" + String(_cpiEarnPotFY).slice(-2);
+      var _fyFcSlices = (window.FISCAL_CALENDAR || []).filter(function (fc) { return fc.fy === _fyKey; });
+      if (_fyFcSlices.length) {
+        var _fyStarts = _fyFcSlices.map(function (fc) { return fc.start.getTime(); });
+        var _fyEnds   = _fyFcSlices.map(function (fc) { return fc.end.getTime(); });
+        _fyRange = { start: new Date(Math.min.apply(null, _fyStarts)), end: new Date(Math.max.apply(null, _fyEnds)) };
+      }
+    }
+    function _inFY(d) {
+      if (!_fyRange) return true;
+      if (!(d instanceof Date) || isNaN(d.getTime())) return false;
+      return d >= _fyRange.start && d <= _fyRange.end;
+    }
+
     var PORTFOLIO_COLORS = {
       "Networking":               "#00BCF2",
       "Security":                 "#E55400",
@@ -533,66 +621,11 @@ function renderCPIAdopt(data) {
         if (norm(r[s.flagField]) !== "YES") return;
         var d = new Date(r[s.dateField]);
         if (isNaN(d.getTime()) || d < lciStart || d > expiry) return;
+        if (!_inFY(d)) return; // FY filter — stage completion date
         allEarnByPortfolio[p] += parseFloat(r[s.amtField]) || 0;
       });
     });
-    var chart6Portfolios = allEarnPortfolios.filter(function (p) { return allEarnByPortfolio[p] > 0; });
-    chart6Portfolios.sort(function (a, b) { return allEarnByPortfolio[b] - allEarnByPortfolio[a]; });
-    var chart6GrandTotal = chart6Portfolios.reduce(function (s, p) { return s + allEarnByPortfolio[p]; }, 0);
-    var chart6TotalFmt = Math.abs(chart6GrandTotal) >= 1000000 ? "$"+(chart6GrandTotal/1000000).toFixed(2)+"M"
-                       : Math.abs(chart6GrandTotal) >= 1000    ? "$"+(chart6GrandTotal/1000).toFixed(1)+"K"
-                       : "$"+Math.round(chart6GrandTotal).toLocaleString();
-    var t6El = document.getElementById("cpi-chart6-total");
-    if (t6El) { t6El.textContent = "Total: " + chart6TotalFmt; t6El.style.fontSize = "1rem"; t6El.style.fontWeight = "600"; t6El.style.color = "#555"; }
-    var chart6Colors = chart6Portfolios.map(function (p, idx) {
-      var fallback = ["#00BCF2","#E55400","#6BB700","#7B3F91","#FF8C00","#005B99"];
-      return PORTFOLIO_COLORS[p] || fallback[idx % fallback.length];
-    });
-    if (_cpiChart6) { _cpiChart6.destroy(); _cpiChart6 = null; }
-    var ctx6 = document.getElementById("cpi-chart6").getContext("2d");
-    _cpiChart6 = new Chart(ctx6, {
-      type: "bar",
-      data: {
-        labels: chart6Portfolios,
-        datasets: [{
-          label: "Earned",
-          data: chart6Portfolios.map(function (p) { return allEarnByPortfolio[p]; }),
-          backgroundColor: chart6Colors
-        }]
-      },
-      options: {
-        indexAxis: "y",
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          x: {
-            beginAtZero: true,
-            ticks: { callback: function (v) {
-              if (Math.abs(v) >= 1000000) return "$"+(v/1000000).toFixed(1)+"M";
-              if (Math.abs(v) >= 1000)    return "$"+(v/1000).toFixed(0)+"K";
-              return "$"+Math.round(v).toLocaleString();
-            }}
-          },
-          y: { grid: { display: false } }
-        },
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function (ctx) {
-                var v = ctx.raw;
-                var fmt = Math.abs(v) >= 1000000 ? "$"+(v/1000000).toFixed(2)+"M"
-                        : Math.abs(v) >= 1000    ? "$"+(v/1000).toFixed(1)+"K"
-                        : "$"+Math.round(v).toLocaleString();
-                return "Earned: " + fmt;
-              }
-            }
-          }
-        }
-      }
-    });
-
-    // ── Chart 7: Potential Incentives by Portfolio (from Potential Incentives field, eligible opted-in)
+    // ── Potential Incentives by Portfolio (eligible opted-in)
     var potByPortfolio = {};
     var potPortfolios = portfolioFilter ? [portfolioFilter] : portfolios;
     potPortfolios.forEach(function (p) { potByPortfolio[p] = 0; });
@@ -600,33 +633,180 @@ function renderCPIAdopt(data) {
       var isEligible = norm(r["Stage"]) === "ELIGIBLE";
       var isOptedIn  = norm(r["Adopt Rebate Opt-In Status"]) === "OPTED IN";
       if (!isEligible || !isOptedIn) return;
+      if (!_inFY(new Date(r["Deal Incentive Expiry Date"]))) return; // FY filter — expiry date
       var p = r["Deal CPI Portfolio"];
       if (!p || potByPortfolio[p] === undefined) return;
       potByPortfolio[p] += parseFloat(r["Potential Incentives"]) || 0;
     });
-    var chart7Portfolios = potPortfolios.filter(function (p) { return potByPortfolio[p] > 0; });
-    chart7Portfolios.sort(function (a, b) { return potByPortfolio[b] - potByPortfolio[a]; });
-    var chart7GrandTotal = chart7Portfolios.reduce(function (s, p) { return s + potByPortfolio[p]; }, 0);
-    var chart7TotalFmt = Math.abs(chart7GrandTotal) >= 1000000 ? "$"+(chart7GrandTotal/1000000).toFixed(2)+"M"
-                       : Math.abs(chart7GrandTotal) >= 1000    ? "$"+(chart7GrandTotal/1000).toFixed(1)+"K"
-                       : "$"+Math.round(chart7GrandTotal).toLocaleString();
-    var t7El = document.getElementById("cpi-chart7-total");
-    if (t7El) { t7El.textContent = "Total: " + chart7TotalFmt; t7El.style.fontSize = "1rem"; t7El.style.fontWeight = "600"; t7El.style.color = "#555"; }
-    var chart7Colors = chart7Portfolios.map(function (p, idx) {
-      var fallback = ["#00BCF2","#E55400","#6BB700","#7B3F91","#FF8C00","#005B99"];
-      return PORTFOLIO_COLORS[p] || fallback[idx % fallback.length];
+
+    // ── Missed Incentives by Portfolio.
+    //
+    // Attribution model: apply the earned-guard at the whole CRPartyID-Offer group level (across
+    // all data — no FY filter yet). For each surviving contributing row, decompose the row's
+    // Missed Incentives back into its per-stage components (mirroring transform.js Step 11), then
+    // attribute each stage's dollars to the FY of that stage's completion date — same date basis
+    // as Earned. This keeps Σ per-FY missed = All Time missed, with FY buckets that match the
+    // "when did the miss happen?" question naturally.
+    var MISSED_STAGES = [
+      { flagField: "Stage Completion Flag(onboard)", dateField: "Stage Completion Date(onboard)", amtField: "Estimated Incentive Amount(Onboard)" },
+      { flagField: "Stage Completion Flag(Use)",     dateField: "Stage Completion Date(Use)",     amtField: "Estimated Incentive Amount(Use)"     },
+      { flagField: "Stage Completion Flag(Engage)",  dateField: "Stage Completion Date(Engage)",  amtField: "Estimated Incentive Amount(Engage)"  },
+      { flagField: "Stage Completion Flag(Adopt)",   dateField: "Stage Completion Date(Adopt)",   amtField: "Estimated Incentive Amount(Adopt)"   }
+    ];
+    function _perStageMissedContribs(r) {
+      // Returns [{ stageDate: Date, amount: number }] for this row's missed stages.
+      // Mirrors transform.js Step 11: missedA (not opted-in) or missedB (opted-in, pre-window).
+      var out = [];
+      var bookDate = new Date(r["Booking Date"]);
+      var lciStart = new Date(r["Adopt Rebate Start Date"]);
+      var optedIn = norm(r["Adopt Rebate Opt-In Status"]) === "OPTED IN";
+      var bookOK = !isNaN(bookDate.getTime());
+      var lciOK  = !isNaN(lciStart.getTime());
+      MISSED_STAGES.forEach(function (s) {
+        if (norm(r[s.flagField]) !== "YES") return;
+        var d = new Date(r[s.dateField]);
+        if (isNaN(d.getTime())) return;
+        if (bookOK && d < bookDate) return;
+        var amt = parseFloat(r[s.amtField]) || 0;
+        if (!amt) return;
+        if (!optedIn) {
+          out.push({ stageDate: d, amount: amt }); // missedA
+        } else if (lciOK && d < lciStart) {
+          out.push({ stageDate: d, amount: amt }); // missedB
+        }
+      });
+      return out;
+    }
+    var missedBaseFull = data.filter(function (r) {
+      if (portfolioFilter && r["Deal CPI Portfolio"] !== portfolioFilter) return false;
+      if (offerFilter     && r["Track"] !== offerFilter)                   return false;
+      return true;
     });
-    if (_cpiChart7) { _cpiChart7.destroy(); _cpiChart7 = null; }
-    var ctx7 = document.getElementById("cpi-chart7").getContext("2d");
-    _cpiChart7 = new Chart(ctx7, {
+    var _missedGroups = {};
+    missedBaseFull.forEach(function (r) {
+      var k = r["CRPartyID-Offer"] || "";
+      (_missedGroups[k] = _missedGroups[k] || []).push(r);
+    });
+    // missedContrib[portfolio][fyKey] = attributed miss dollars, keyed by stage completion FY.
+    var missedContrib = {};
+    function _addRowContribs(row) {
+      var p = row["Deal CPI Portfolio"];
+      if (!p) return;
+      _perStageMissedContribs(row).forEach(function (c) {
+        var fc = window.getFiscalMonth(c.stageDate);
+        var fy = fc ? fc.fy : "__nofy";
+        missedContrib[p] = missedContrib[p] || {};
+        missedContrib[p][fy] = (missedContrib[p][fy] || 0) + c.amount;
+      });
+    }
+    Object.keys(_missedGroups).forEach(function (k) {
+      var grp = _missedGroups[k];
+      var anyEarned = grp.some(function (r) { return (parseFloat(r["Estimated Earned Incentives"]) || 0) > 0; });
+      if (anyEarned) {
+        grp.forEach(function (r) {
+          if ((parseFloat(r["Estimated Earned Incentives"]) || 0) > 0) _addRowContribs(r);
+        });
+      } else {
+        var maxV = 0, maxRow = null;
+        grp.forEach(function (r) {
+          var v = parseFloat(r["Missed Incentives"]) || 0;
+          if (v > maxV) { maxV = v; maxRow = r; }
+        });
+        if (maxRow) _addRowContribs(maxRow);
+      }
+    });
+    // Roll up to portfolio-level based on the current FY selection.
+    var missedByPortfolio = {};
+    var _selectedFyKey = _cpiEarnPotFY === "all" ? null : "FY" + String(_cpiEarnPotFY).slice(-2);
+    (portfolioFilter ? [portfolioFilter] : portfolios).forEach(function (p) {
+      var byFY = missedContrib[p] || {};
+      if (_selectedFyKey === null) {
+        missedByPortfolio[p] = Object.keys(byFY).reduce(function (s, fy) { return s + byFY[fy]; }, 0);
+      } else {
+        missedByPortfolio[p] = byFY[_selectedFyKey] || 0;
+      }
+    });
+
+    // ── Not opted-in max by Portfolio: Σ Revised Maximum Incentive Amount for
+    // MaxFlag=YES, not-opted-in rows in scope; FY filter by Deal Incentive Expiry Date.
+    var notOptedByPortfolio = {};
+    (portfolioFilter ? [portfolioFilter] : portfolios).forEach(function (p) { notOptedByPortfolio[p] = 0; });
+    subset.forEach(function (r) {
+      if (norm(r["Adopt Rebate Opt-In Status"]) === "OPTED IN") return;
+      if (!_inFY(new Date(r["Deal Incentive Expiry Date"]))) return;
+      var p = r["Deal CPI Portfolio"];
+      if (!p || notOptedByPortfolio[p] === undefined) return;
+      notOptedByPortfolio[p] += parseFloat(r["Revised Maximum Incentive Amount"]) || 0;
+    });
+
+    // ── Combined Potential + Earned + Missed + Not opted-in by Portfolio (grouped horizontal bars)
+    var earnPotPortfolios = Array.from(new Set(
+      Object.keys(allEarnByPortfolio)
+        .concat(Object.keys(potByPortfolio))
+        .concat(Object.keys(missedByPortfolio))
+        .concat(Object.keys(notOptedByPortfolio))
+    )).filter(function (p) {
+      return (allEarnByPortfolio[p]  || 0) > 0
+          || (potByPortfolio[p]      || 0) > 0
+          || (missedByPortfolio[p]   || 0) > 0
+          || (notOptedByPortfolio[p] || 0) > 0;
+    });
+    // Sort by combined magnitude, descending.
+    earnPotPortfolios.sort(function (a, b) {
+      return ((allEarnByPortfolio[b]  || 0) + (potByPortfolio[b]      || 0) + (missedByPortfolio[b]   || 0) + (notOptedByPortfolio[b] || 0))
+           - ((allEarnByPortfolio[a]  || 0) + (potByPortfolio[a]      || 0) + (missedByPortfolio[a]   || 0) + (notOptedByPortfolio[a] || 0));
+    });
+    var earnGrandTotal      = earnPotPortfolios.reduce(function (s, p) { return s + (allEarnByPortfolio[p]  || 0); }, 0);
+    var potGrandTotal       = earnPotPortfolios.reduce(function (s, p) { return s + (potByPortfolio[p]      || 0); }, 0);
+    var missedGrandTotal    = earnPotPortfolios.reduce(function (s, p) { return s + (missedByPortfolio[p]   || 0); }, 0);
+    var notOptedGrandTotal  = earnPotPortfolios.reduce(function (s, p) { return s + (notOptedByPortfolio[p] || 0); }, 0);
+    function fmtDollars(v) {
+      return Math.abs(v) >= 1000000 ? "$"+(v/1000000).toFixed(2)+"M"
+           : Math.abs(v) >= 1000    ? "$"+(v/1000).toFixed(1)+"K"
+           : "$"+Math.round(v).toLocaleString();
+    }
+    var earnPotTotalEl = document.getElementById("cpi-chart-earnpot-total");
+    if (earnPotTotalEl) {
+      earnPotTotalEl.innerHTML =
+        '<span style="color:#00BCF2">Potential: ' + fmtDollars(potGrandTotal) + '</span>' +
+        '<span class="text-muted mx-2">|</span>' +
+        '<span style="color:#107C10">Earned: ' + fmtDollars(earnGrandTotal) + '</span>' +
+        '<span class="text-muted mx-2">|</span>' +
+        '<span style="color:#D13438">Missed: ' + fmtDollars(missedGrandTotal) + '</span>' +
+        '<span class="text-muted mx-2">|</span>' +
+        '<span style="color:#8A8A8A">Not opted-in: ' + fmtDollars(notOptedGrandTotal) + '</span>';
+      earnPotTotalEl.style.fontSize = "0.9rem";
+      earnPotTotalEl.style.fontWeight = "600";
+    }
+    if (_cpiChart6) { _cpiChart6.destroy(); _cpiChart6 = null; }
+    if (_cpiChart7) { _cpiChart7.destroy(); _cpiChart7 = null; } // chart merged into _cpiChart6
+    var ctxEarnPot = document.getElementById("cpi-chart-earnpot").getContext("2d");
+    _cpiChart6 = new Chart(ctxEarnPot, {
       type: "bar",
       data: {
-        labels: chart7Portfolios,
-        datasets: [{
-          label: "Potential",
-          data: chart7Portfolios.map(function (p) { return potByPortfolio[p]; }),
-          backgroundColor: chart7Colors
-        }]
+        labels: earnPotPortfolios,
+        datasets: [
+          {
+            label: "Potential",
+            data: earnPotPortfolios.map(function (p) { return potByPortfolio[p] || 0; }),
+            backgroundColor: "#00BCF2"
+          },
+          {
+            label: "Earned",
+            data: earnPotPortfolios.map(function (p) { return allEarnByPortfolio[p] || 0; }),
+            backgroundColor: "#107C10"
+          },
+          {
+            label: "Missed",
+            data: earnPotPortfolios.map(function (p) { return missedByPortfolio[p] || 0; }),
+            backgroundColor: "#D13438"
+          },
+          {
+            label: "Not opted-in",
+            data: earnPotPortfolios.map(function (p) { return notOptedByPortfolio[p] || 0; }),
+            backgroundColor: "#8A8A8A"
+          }
+        ]
       },
       options: {
         indexAxis: "y",
@@ -644,22 +824,18 @@ function renderCPIAdopt(data) {
           y: { grid: { display: false } }
         },
         plugins: {
-          legend: { display: false },
+          legend: { position: "right", labels: { boxWidth: 12, font: { size: 11 } } },
           tooltip: {
             callbacks: {
               label: function (ctx) {
-                var v = ctx.raw;
-                var fmt = Math.abs(v) >= 1000000 ? "$"+(v/1000000).toFixed(2)+"M"
-                        : Math.abs(v) >= 1000    ? "$"+(v/1000).toFixed(1)+"K"
-                        : "$"+Math.round(v).toLocaleString();
-                return "Potential: " + fmt;
+                return ctx.dataset.label + ": " + fmtDollars(ctx.raw);
               }
             }
           }
         }
       }
     });
-  }  // end buildStatCharts
+  }  // end buildEarnPotChart
 
   function buildMonthlyCharts(portfolioFilter, offerFilter) {
     var subset = data.filter(function (r) {

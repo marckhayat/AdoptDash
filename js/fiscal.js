@@ -1,5 +1,5 @@
 // =============================================================================
-// fiscal.js — Cisco Fiscal Calendar (FY24M1 through FY27M12)
+// fiscal.js — Cisco Fiscal Calendar (FY24M1 through FY28M12)
 // =============================================================================
 // Excel serial date → JS Date: new Date((serial - 25569) * 86400 * 1000)
 // =============================================================================
@@ -57,7 +57,21 @@
     { fiscalMonth: "FY27M9",  fy: "FY27", fm: 9,  startSerial: 46467, endSerial: 46501,  count: 45 },
     { fiscalMonth: "FY27M10", fy: "FY27", fm: 10, startSerial: 46502, endSerial: 46529,  count: 46 },
     { fiscalMonth: "FY27M11", fy: "FY27", fm: 11, startSerial: 46530, endSerial: 46557,  count: 47 },
-    { fiscalMonth: "FY27M12", fy: "FY27", fm: 12, startSerial: 46558, endSerial: 46599,  count: 48 }
+    { fiscalMonth: "FY27M12", fy: "FY27", fm: 12, startSerial: 46558, endSerial: 46599,  count: 48 },
+    // FY28 — estimated using standard Cisco 4-4-5 pattern (52 weeks / 364 days). Confirm with
+    // the official fiscal calendar owner and adjust as needed.
+    { fiscalMonth: "FY28M1",  fy: "FY28", fm: 1,  startSerial: 46600, endSerial: 46627,  count: 49 },
+    { fiscalMonth: "FY28M2",  fy: "FY28", fm: 2,  startSerial: 46628, endSerial: 46655,  count: 50 },
+    { fiscalMonth: "FY28M3",  fy: "FY28", fm: 3,  startSerial: 46656, endSerial: 46690,  count: 51 },
+    { fiscalMonth: "FY28M4",  fy: "FY28", fm: 4,  startSerial: 46691, endSerial: 46718,  count: 52 },
+    { fiscalMonth: "FY28M5",  fy: "FY28", fm: 5,  startSerial: 46719, endSerial: 46746,  count: 53 },
+    { fiscalMonth: "FY28M6",  fy: "FY28", fm: 6,  startSerial: 46747, endSerial: 46781,  count: 54 },
+    { fiscalMonth: "FY28M7",  fy: "FY28", fm: 7,  startSerial: 46782, endSerial: 46809,  count: 55 },
+    { fiscalMonth: "FY28M8",  fy: "FY28", fm: 8,  startSerial: 46810, endSerial: 46837,  count: 56 },
+    { fiscalMonth: "FY28M9",  fy: "FY28", fm: 9,  startSerial: 46838, endSerial: 46872,  count: 57 },
+    { fiscalMonth: "FY28M10", fy: "FY28", fm: 10, startSerial: 46873, endSerial: 46900,  count: 58 },
+    { fiscalMonth: "FY28M11", fy: "FY28", fm: 11, startSerial: 46901, endSerial: 46928,  count: 59 },
+    { fiscalMonth: "FY28M12", fy: "FY28", fm: 12, startSerial: 46929, endSerial: 46963,  count: 60 }
   ];
 
   // Build the calendar with real Date objects
