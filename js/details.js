@@ -1945,6 +1945,8 @@ function renderDetails(data) {
         // Column definitions
         var has2T = data.some(function(r){ return r["2T Partner Name"] && String(r["2T Partner Name"]).trim() !== ""; });
         var colDefs = [
+          { label:"Partner Name",            field:"Partner Name" },
+          { label:"BE GEO ID",               field:"BE GEO ID" },
           ...(has2T ? [{ label:"2T Partner Name", field:"2T Partner Name" }] : []),
           { label:"CR Party Name",           field:"CR Party Name" },
           { label:"CR Party ID",             field:"CR Party ID" },
@@ -1997,6 +1999,10 @@ function renderDetails(data) {
           var row = colDefs.map(function(c) {
             var v = r[c.field];
             if (c.isCurrency) return (v === null || v === undefined || isNaN(v)) ? 0 : Math.round(v);
+            if (c.isDate) {
+              var exportDate = toDate(v);
+              return exportDate || ((v === null || v === undefined) ? "" : String(v));
+            }
             if (c.isRemainingIncentive) {
               var _norm2 = function(x) { return x === null || x === undefined ? "" : String(x).replace(/\u00A0/g," ").trim().toUpperCase(); };
               var _eligible = _norm2(r["Stage"]) === "ELIGIBLE";
@@ -2091,7 +2097,7 @@ function renderDetails(data) {
           ws[addr].s = { font: hdrFont, fill: hdrFill, alignment: { horizontal: "center", wrapText: true } };
         });
 
-        // Data rows — alternate shading + currency number format
+        // Data rows — alternate shading + number formats
         rows.forEach(function(_, ri) {
           var wsRow = headerRowIdx + 1 + ri;
           var fillColor = ri % 2 === 0 ? "FFFFFF" : "F5F8FF";
@@ -2099,9 +2105,12 @@ function renderDetails(data) {
             var addr = XLS.utils.encode_cell({ r: wsRow, c: ci });
             if (!ws[addr]) ws[addr] = { v: "", t: "s" };
             ws[addr].s = { fill: { fgColor: { rgb: fillColor }, patternType: "solid" }, font: { sz: 9 } };
-            if (c.isCurrency && ws[addr].t === "n") {
+            if ((c.isCurrency || c.isRemainingIncentive) && ws[addr].t === "n") {
               ws[addr].z = '"$"#,##0';
               ws[addr].s.alignment = { horizontal: "right" };
+            }
+            if (c.isDate && (ws[addr].t === "n" || ws[addr].t === "d")) {
+              ws[addr].z = "m/d/yy";
             }
           });
         });
