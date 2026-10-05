@@ -18,7 +18,7 @@ var APP_IS_DISTI = false;
 var APP_MULTI_SESSIONS = null; // { sessions: [...], fileMeta: {...} }
 var APP_EXCL_ACTIVE = false;   // when true, excluded deals are removed from overview/pvi/insights calculations
 var APP_GEO_FILTER = "";       // BE GEO ID filter — applies to all tabs
-var APP_VERSION = "v6.17.1";
+var APP_VERSION = "v6.18";
 // Use the browser's preferred language for date formatting (respects user's browser locale setting)
 var APP_LOCALE = navigator.language || undefined;
 // Holds a FileSystemFileHandle from showOpenFilePicker() to be persisted after load
@@ -108,6 +108,8 @@ var KNOWN_COLUMNS = [
 document.addEventListener("DOMContentLoaded", init);
 
 function init() {
+  initThemePreference();
+
   // Check IndexedDB for cached datasets and render resume cards if found
   IDB.loadAllMeta().then(function (entries) {
     restoreUploadSection(entries);
@@ -124,6 +126,41 @@ function init() {
       }
       renderActiveTab(e.target.dataset.bsTarget);
     });
+  });
+}
+
+function initThemePreference() {
+  var toggle = document.getElementById("dark-theme-toggle");
+  if (!toggle) return;
+
+  toggle.checked = document.documentElement.getAttribute("data-bs-theme") === "dark";
+  toggle.addEventListener("change", function () {
+    var theme = toggle.checked ? "dark" : "light";
+    document.documentElement.setAttribute("data-bs-theme", theme);
+    try {
+      localStorage.setItem("adoptdash-theme", theme);
+    } catch (error) {
+      console.warn("[AdoptDash] Unable to save theme preference.", error);
+    }
+    updateChartTheme(theme);
+  });
+
+  updateChartTheme(toggle.checked ? "dark" : "light");
+}
+
+function updateChartTheme(theme) {
+  if (typeof Chart === "undefined") return;
+
+  var color = theme === "dark" ? "#dee2e6" : "#666";
+  var gridColor = theme === "dark" ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)";
+  Chart.defaults.color = color;
+  Chart.defaults.borderColor = gridColor;
+
+  // Only the defaults are changed: writing to a chart's resolved options
+  // proxies can create self-referencing values and blow the call stack.
+  document.querySelectorAll("canvas").forEach(function (canvas) {
+    var chart = Chart.getChart(canvas);
+    if (chart) chart.update("none");
   });
 }
 

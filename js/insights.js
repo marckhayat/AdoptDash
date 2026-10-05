@@ -1134,8 +1134,8 @@ function renderTesting(data) {
       // Outside label anchored to the right edge of the bar
       if (narrow) {
         fh += '<span style="position:absolute;left:calc(50% + ' + (widPct / 2) + '% + 6px);top:50%;transform:translateY(-50%);';
-        fh += 'font-size:10px;white-space:nowrap;color:#495057;">';
-        fh += escHtml(row.label) + ' <strong>' + row.count + '</strong><span style="color:#6c757d"> (' + pct + '%)</span>';
+        fh += 'font-size:10px;white-space:nowrap;" class="uch-funnel-outside">';
+        fh += escHtml(row.label) + ' <strong>' + row.count + '</strong><span class="uch-funnel-outside-pct"> (' + pct + '%)</span>';
         fh += '</span>';
       }
       fh += '</div>';

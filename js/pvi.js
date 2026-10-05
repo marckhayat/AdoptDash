@@ -104,7 +104,7 @@ function renderPVI(data) {
   });
   html += '</div>';
 
-  html += '<div class="mt-3 p-3 rounded" style="background:#f8f9fa;border:1px solid #dee2e6;font-size:0.82rem">';
+  html += '<div class="pvi-notes mt-3 p-3 rounded" style="background:#f8f9fa;border:1px solid #dee2e6;font-size:0.82rem">';
   html += '<div class="fw-semibold mb-2">PVI Engagement calculation:</div>';
   html += '<ul class="mb-2 ps-3">';
   html += '<li>Only considers eligible UCs that have a booking date within the past 18 fiscal months.</li>';

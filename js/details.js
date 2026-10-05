@@ -1466,7 +1466,7 @@ function renderDetails(data) {
               else if (daysUntil > 90) cellStyle = ' style="background:#fff4ce"';
               else if (daysUntil >= 0) cellStyle = ' style="background:#ffe6e6"';
             }
-            tbody += '<td' + cellStyle + '>' + fmtDate(val) + '</td>';
+            tbody += '<td class="expiry-date-cell"' + cellStyle + '>' + fmtDate(val) + '</td>';
             return;
           } else if (c.isDate) {
             cell = '<td>' + fmtDate(val) + '</td>';
@@ -2121,11 +2121,10 @@ function renderDetails(data) {
         });
 
         // Filename
-        var beGeoStr = Array.from(new Set(data.map(function(r){ return String(r["BE GEO ID"]||""); }).filter(Boolean))).join("-") || "export";
         var dateStr = new Date().toLocaleDateString(window.APP_LOCALE, { year:"numeric", month:"2-digit", day:"2-digit" })
           .replace(/\//g,"-").replace(/\./g,"-");
         XLS.utils.book_append_sheet(wb, ws, "Details");
-        XLS.writeFile(wb, "AdoptDash_Details_" + beGeoStr + "_" + dateStr + ".xlsx");
+        XLS.writeFile(wb, "AdoptDash_Details_" + dateStr + ".xlsx");
       } catch(err) {
         alert("Export failed: " + err.message);
         console.error(err);

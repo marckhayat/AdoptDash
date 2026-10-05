@@ -225,7 +225,7 @@ function renderCustomer(data) {
             else if (daysUntil > 90) cellStyle = ' style="background:#fff4ce"';
             else if (daysUntil >= 0) cellStyle = ' style="background:#ffe6e6"';
           }
-          tbody += '<td' + cellStyle + '>' + fmtDate(val) + '</td>';
+          tbody += '<td class="expiry-date-cell"' + cellStyle + '>' + fmtDate(val) + '</td>';
         } else if (c.isDate) {
           tbody += '<td>' + fmtDate(val) + '</td>';
         } else if (c.isCurrency) {
