@@ -1110,6 +1110,34 @@ function restoreUploadSection(cachedEntries) {
     });
   });
 
+  var clearAllBtn = document.getElementById("clear-all-btn");
+  if (clearAllBtn) {
+    clearAllBtn.addEventListener("click", function () {
+      if (!confirm("This will delete all saved dashboard sessions, file access permissions, annotations, and saved preferences. Continue?")) return;
+      clearAllBtn.disabled = true;
+
+      Promise.all([
+        IDB.clearAll(),
+        IDB.clearAllHandles(),
+        ANNOTATIONS.clearAll()
+      ]).then(function () {
+        var keysToRemove = ["ws-report-id", "ws-client-id", "ws-client-secret", "adoptdash-theme", "lci-region", "lci-week"];
+        for (var i = 0; i < localStorage.length; i++) {
+          var key = localStorage.key(i);
+          if (key && key.indexOf("dismissed-notifs-") === 0) keysToRemove.push(key);
+        }
+        keysToRemove.forEach(function (key) { localStorage.removeItem(key); });
+        APP_MULTI_SESSIONS = null;
+        window._dismissedNotifs = {};
+        location.reload();
+      }).catch(function (error) {
+        console.error("[AdoptDash] Unable to clear all dashboard data.", error);
+        alert("Unable to clear all dashboard data: " + (error.message || error));
+        clearAllBtn.disabled = false;
+      });
+    });
+  }
+
   if (document.getElementById("lci-region")) {
   var cpiRefreshAllBtn = document.getElementById("cpi-refresh-all-btn");
   if (cpiRefreshAllBtn) {
@@ -1117,19 +1145,6 @@ function restoreUploadSection(cachedEntries) {
       refreshAllPreviousSessions();
     });
   }
-
-  document.getElementById("clear-all-btn").addEventListener("click", function () {
-    if (!confirm("This will delete all cached sessions and your saved username. Continue?")) return;
-    IDB.clearAll().then(function () {
-      IDB.clearAllHandles().catch(function() {});
-      ANNOTATIONS.clearAll();
-      localStorage.removeItem("ws-report-id");
-      localStorage.removeItem("ws-client-id");
-      localStorage.removeItem("ws-client-secret");
-      APP_MULTI_SESSIONS = null;
-      location.reload();
-    });
-  });
 
   function updateLciHint() {
     var region = document.getElementById("lci-region").value;
