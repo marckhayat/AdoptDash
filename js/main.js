@@ -1337,7 +1337,7 @@ function restoreUploadSection(cachedEntries) {
         var container = document.getElementById("notif-toast-container");
         if (container && !document.getElementById("notif-update")) {
           var html =
-            '<div id="notif-update" class="toast show mb-2" style="border-left:4px solid #e65c00;background:#fff3e0" role="alert" data-bs-autohide="false">' +
+            '<div id="notif-update" class="toast show mb-2" style="border-left:4px solid #e65c00" role="alert" data-bs-autohide="false">' +
               '<div class="toast-header" style="background:#e65c00;color:#fff">' +
                 '<i class="bi bi-arrow-up-circle-fill me-2"></i>' +
                 '<strong class="me-auto">Update Available</strong>' +
