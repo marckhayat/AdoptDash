@@ -1491,7 +1491,7 @@ function renderDetails(data) {
               icons.push('<i class="bi bi-hand-thumbs-up-fill" style="color:#0070d2" title="Opted In"></i>');
             var stg2 = norm(r["Stage"]);
             if (r["Earned?"] === true)
-              icons.push('<i class="bi bi-currency-dollar fw-bold" style="color:#000" title="Earned"></i>');
+              icons.push('<i class="bi bi-currency-dollar fw-bold det-status-earned" title="Earned"></i>');
             if      (stg2 === "ELIGIBLE") icons.push('<i class="bi bi-check-circle-fill" style="color:#107C10" title="Eligible"></i>');
             else if (stg2 === "EXPIRED")  icons.push('<i class="bi bi-clock" style="color:#888" title="Expired"></i>');
             else if (r["Earned?"] !== true) icons.push('<i class="bi bi-x-circle-fill" style="color:#D13438" title="Not Eligible"></i>');
@@ -1527,7 +1527,10 @@ function renderDetails(data) {
             cell = '<span class="stage-badge stage-' + escHtml(val) + '">' + escHtml(val) + '</span>';
             var depSharedId = depSharedKey ? String(r[depSharedKey] || "").trim() : "";
             if (depSharedId) {
-              cell += '<div style="font-size:0.72rem;color:#888;margin-top:2px;cursor:help" title="Deployment ID">' + escHtml(depSharedId) + '</div>';
+              var depSharedTitle = depSharedId === "Pending"
+                ? "Sign the DCC to view the deployment ID"
+                : "Deployment ID";
+              cell += '<div style="font-size:0.72rem;color:#888;margin-top:2px;cursor:help" title="' + depSharedTitle + '">' + escHtml(depSharedId) + '</div>';
             }
           } else if (c.field === "Days in stage") {
             var days = val !== null && val !== undefined ? parseInt(val) : null;

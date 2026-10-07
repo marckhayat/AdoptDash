@@ -155,6 +155,7 @@
 .table-wrapper tbody tr:hover td {
   background-color: #e8f7fd !important;
 }
+.det-status-earned { color: #000; }
 
 /* ── Summary metric cards ────────────────────────────────── */
 .metric-card {
@@ -669,6 +670,10 @@ html[data-bs-theme="dark"] .table-wrapper tbody td.expiry-date-cell {
 
 html[data-bs-theme="dark"] .table-wrapper tbody tr:hover td.expiry-date-cell {
   color: #f8fafc !important;
+}
+
+html[data-bs-theme="dark"] .det-status-earned {
+  color: #fff;
 }
 
 html[data-bs-theme="dark"] label[for="annot-excl-this"] {
